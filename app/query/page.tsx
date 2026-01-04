@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import ReactMarkdown from "react-markdown";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Search, FileText, Leaf, FlaskConical, Sparkles } from "lucide-react";
+import { Loader2, Search, FileText, Leaf, FlaskConical, Sparkles, BookOpen, Copy, Check } from "lucide-react";
 
 interface QueryEntity {
   name: string;
@@ -55,13 +56,70 @@ export default function QueryPage() {
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<SearchResults | null>(null);
   const [error, setError] = useState("");
+  const [copiedContext, setCopiedContext] = useState(false);
 
-  const exampleQueries = [
-    "what herb for headache",
-    "ginger benefits for diabetes",
-    "anti-inflammatory herbs",
-    "turmeric compounds and effects",
-  ];
+  // Generate context string for RAGAS evaluation
+  const generateContextString = (): string => {
+    if (!results) return "";
+
+    let context = "";
+
+    // Chunk 1-5 with full text
+    if (results.vectorResults.length > 0) {
+      context += "=== RETRIEVED CHUNKS ===\n\n";
+      results.vectorResults.slice(0, 5).forEach((chunk, i) => {
+        context += `[Chunk ${i + 1}]`;
+        if (chunk.journal) {
+          context += ` (Source: ${chunk.journal.title}, ${chunk.journal.year})`;
+        }
+        context += `\n${chunk.text}\n\n`;
+      });
+    }
+
+    // Relation summary as paragraph
+    if (
+      results.graphResults.herbs.length > 0 ||
+      results.graphResults.compounds.length > 0 ||
+      results.graphResults.effects.length > 0
+    ) {
+      context += "=== KNOWLEDGE GRAPH RELATIONS ===\n\n";
+
+      // Herbs paragraph
+      if (results.graphResults.herbs.length > 0) {
+        const herbNames = results.graphResults.herbs.map((h) => h.name).join(", ");
+        context += `The knowledge graph identified the following relevant herbs: ${herbNames}. `;
+      }
+
+      // Compounds paragraph
+      if (results.graphResults.compounds.length > 0) {
+        const compoundRelations = results.graphResults.compounds
+          .slice(0, 10)
+          .map((rel) => `${rel.source.name} ${rel.relation} ${rel.target.name}`)
+          .join("; ");
+        context += `These herbs contain compounds with the following relationships: ${compoundRelations}. `;
+      }
+
+      // Effects paragraph
+      if (results.graphResults.effects.length > 0) {
+        const effectRelations = results.graphResults.effects
+          .slice(0, 10)
+          .map((rel) => `${rel.source.name} ${rel.relation} ${rel.target.name}`)
+          .join("; ");
+        context += `The identified effects include: ${effectRelations}.`;
+      }
+
+      context += "\n";
+    }
+
+    return context.trim();
+  };
+
+  const copyContextToClipboard = async () => {
+    const contextString = generateContextString();
+    await navigator.clipboard.writeText(contextString);
+    setCopiedContext(true);
+    setTimeout(() => setCopiedContext(false), 2000);
+  };
 
   const handleSearch = async (searchQuery?: string) => {
     const q = searchQuery || query;
@@ -150,26 +208,6 @@ export default function QueryPage() {
               )}
             </Button>
           </div>
-
-          {/* Example Queries */}
-          <div className="mt-4">
-            <p className="text-sm text-gray-500 mb-2">Try these examples:</p>
-            <div className="flex flex-wrap gap-2">
-              {exampleQueries.map((example, i) => (
-                <button
-                  key={i}
-                  onClick={() => {
-                    setQuery(example);
-                    handleSearch(example);
-                  }}
-                  className="text-sm px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-full text-gray-700 transition-colors"
-                  disabled={loading}
-                >
-                  {example}
-                </button>
-              ))}
-            </div>
-          </div>
         </CardContent>
       </Card>
 
@@ -195,9 +233,36 @@ export default function QueryPage() {
             </CardHeader>
             <CardContent>
               <div className="prose prose-emerald max-w-none">
-                <div className="text-gray-800 leading-relaxed whitespace-pre-wrap">
+                <ReactMarkdown
+                  components={{
+                    p: ({ children }) => (
+                      <p className="text-gray-800 leading-relaxed mb-4">{children}</p>
+                    ),
+                    strong: ({ children }) => (
+                      <strong className="font-bold text-emerald-700">{children}</strong>
+                    ),
+                    ul: ({ children }) => (
+                      <ul className="list-disc list-inside text-gray-800 mb-4 space-y-1">{children}</ul>
+                    ),
+                    ol: ({ children }) => (
+                      <ol className="list-decimal list-inside text-gray-800 mb-4 space-y-1">{children}</ol>
+                    ),
+                    li: ({ children }) => (
+                      <li className="text-gray-700">{children}</li>
+                    ),
+                    h1: ({ children }) => (
+                      <h1 className="text-xl font-bold text-gray-900 mb-2">{children}</h1>
+                    ),
+                    h2: ({ children }) => (
+                      <h2 className="text-lg font-bold text-gray-900 mb-2">{children}</h2>
+                    ),
+                    h3: ({ children }) => (
+                      <h3 className="text-base font-semibold text-gray-900 mb-2">{children}</h3>
+                    ),
+                  }}
+                >
                   {results.answer}
-                </div>
+                </ReactMarkdown>
               </div>
             </CardContent>
           </Card>
@@ -387,6 +452,122 @@ export default function QueryPage() {
               </CardContent>
             </Card>
           )}
+
+          {/* Context for RAGAS Evaluation */}
+          <Card className="shadow-lg border-2 border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2 text-amber-700">
+                  <BookOpen className="h-6 w-6" />
+                  Context (for RAGAS Evaluation)
+                </CardTitle>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={copyContextToClipboard}
+                  className="border-amber-300 text-amber-700 hover:bg-amber-100"
+                >
+                  {copiedContext ? (
+                    <>
+                      <Check className="h-4 w-4 mr-1" />
+                      Copied!
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="h-4 w-4 mr-1" />
+                      Copy Context
+                    </>
+                  )}
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Chunks Section */}
+              <div>
+                <h3 className="font-semibold text-amber-800 mb-3 flex items-center gap-2">
+                  <FileText className="h-4 w-4" />
+                  Retrieved Chunks (1-{Math.min(results.vectorResults.length, 5)})
+                </h3>
+                <div className="space-y-3">
+                  {results.vectorResults.slice(0, 5).map((chunk, i) => (
+                    <div
+                      key={i}
+                      className="p-4 bg-white/80 border border-amber-200 rounded-lg"
+                    >
+                      <div className="flex items-center gap-2 mb-2">
+                        <Badge className="bg-amber-100 text-amber-800 border-amber-300">
+                          Chunk {i + 1}
+                        </Badge>
+                        {chunk.journal && (
+                          <span className="text-xs text-gray-500">
+                            {chunk.journal.title} ({chunk.journal.year})
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
+                        {chunk.text}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Relations Summary as Paragraph */}
+              {(results.graphResults.herbs.length > 0 ||
+                results.graphResults.compounds.length > 0 ||
+                results.graphResults.effects.length > 0) && (
+                <div>
+                  <h3 className="font-semibold text-amber-800 mb-3 flex items-center gap-2">
+                    <Leaf className="h-4 w-4" />
+                    Knowledge Graph Relations Summary
+                  </h3>
+                  <div className="p-4 bg-white/80 border border-amber-200 rounded-lg">
+                    <p className="text-sm text-gray-700 leading-relaxed">
+                      {results.graphResults.herbs.length > 0 && (
+                        <>
+                          The knowledge graph identified the following relevant herbs:{" "}
+                          <span className="font-medium text-green-700">
+                            {results.graphResults.herbs.map((h) => h.name).join(", ")}
+                          </span>
+                          .{" "}
+                        </>
+                      )}
+                      {results.graphResults.compounds.length > 0 && (
+                        <>
+                          These herbs contain compounds with the following relationships:{" "}
+                          <span className="font-medium text-blue-700">
+                            {results.graphResults.compounds
+                              .slice(0, 10)
+                              .map(
+                                (rel) =>
+                                  `${rel.source.name} ${rel.relation} ${rel.target.name}`
+                              )
+                              .join("; ")}
+                          </span>
+                          .{" "}
+                        </>
+                      )}
+                      {results.graphResults.effects.length > 0 && (
+                        <>
+                          The identified effects include:{" "}
+                          <span className="font-medium text-purple-700">
+                            {results.graphResults.effects
+                              .slice(0, 10)
+                              .map(
+                                (rel) =>
+                                  `${rel.source.name} ${rel.relation} ${rel.target.name}`
+                              )
+                              .join("; ")}
+                          </span>
+                          .
+                        </>
+                      )}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
       )}
     </div>

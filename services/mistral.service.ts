@@ -427,11 +427,12 @@ ${relationsList || "No relations found"}
 INSTRUCTIONS:
 1. Answer the question directly and concisely
 2. Focus on herbal treatments and their therapeutic effects
-3. Mention specific herbs, their uses, and effects when available
-4. Include dosage or preparation methods if mentioned in context
-5. Keep answer to 3-5 sentences maximum
-6. If context is insufficient, say "Based on available data..." and provide what you can
-7. DO NOT make up information not in the context
+3. IMPORTANT: Mention ALL herbs listed in "Relevant Herbs" above, even if their direct relation to the question is unclear
+4. For each herb, explain its known effects or compounds if available in the context
+5. Include dosage or preparation methods if mentioned in context
+6. Keep answer to 5-10 sentences maximum
+7. If context is insufficient for some herbs, mention them anyway and note that more research may be needed
+8. DO NOT make up information not in the context
 
 Answer:`,
           },
