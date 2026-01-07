@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   /* config options here */
+  serverExternalPackages: ['@xenova/transformers', 'canvas', 'pdf-parse'],
   experimental: {
     serverActions: {
       bodySizeLimit: '10mb',
