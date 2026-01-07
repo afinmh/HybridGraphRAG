@@ -2,18 +2,24 @@
  * Journal Repository - Database operations for journals, embeddings, entities, and relations
  */
 
-import { createClient } from "@supabase/supabase-js";
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { normalizeEntityName, deduplicateEntities, deduplicateRelations } from "@/lib/graph-utils";
 
-// Initialize Supabase client
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+let supabase: SupabaseClient | null = null;
 
-if (!supabaseUrl || !supabaseKey) {
-  throw new Error("Missing Supabase configuration");
+function getSupabaseClient() {
+  if (!supabase) {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!supabaseUrl || !supabaseKey) {
+      throw new Error("Missing Supabase configuration");
+    }
+
+    supabase = createClient(supabaseUrl, supabaseKey);
+  }
+  return supabase;
 }
-
-const supabase = createClient(supabaseUrl, supabaseKey);
 
 export interface Chunk {
   id: number;
@@ -68,6 +74,7 @@ export async function insertJournal(
   year: string,
   fileUrl: string
 ) {
+  const supabase = getSupabaseClient();
   const { data, error } = await supabase
     .from("journals")
     .insert({
@@ -109,6 +116,7 @@ export async function insertEmbeddings(
     };
   });
 
+  const supabase = getSupabaseClient();
   const { data, error } = await supabase
     .from("embeddings")
     .insert(embeddingsToInsert)
@@ -147,6 +155,7 @@ export async function insertEntities(graphs: GraphResult[]) {
     description: null,
   }));
 
+  const supabase = getSupabaseClient();
   const { data, error } = await supabase
     .from("entities")
     .upsert(entitiesToInsert, { onConflict: "name,type", ignoreDuplicates: true })
@@ -164,6 +173,7 @@ export async function insertEntities(graphs: GraphResult[]) {
  * Fetch all entities and create name->id mapping
  */
 export async function fetchEntityIdMap(): Promise<Map<string, string>> {
+  const supabase = getSupabaseClient();
   const { data, error } = await supabase
     .from("entities")
     .select("id, name, type");
@@ -301,6 +311,7 @@ export async function insertRelations(
     return [];
   }
 
+  const supabase = getSupabaseClient();
   const { data, error } = await supabase
     .from("relations")
     .upsert(relationsToInsert, {

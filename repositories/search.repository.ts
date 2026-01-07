@@ -2,16 +2,23 @@
  * Search Repository - Vector and Graph search operations
  */
 
-import { createClient } from "@supabase/supabase-js";
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+let supabase: SupabaseClient | null = null;
 
-if (!supabaseUrl || !supabaseKey) {
-  throw new Error("Missing Supabase configuration");
+function getSupabaseClient() {
+  if (!supabase) {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!supabaseUrl || !supabaseKey) {
+      throw new Error("Missing Supabase configuration");
+    }
+
+    supabase = createClient(supabaseUrl, supabaseKey);
+  }
+  return supabase;
 }
-
-const supabase = createClient(supabaseUrl, supabaseKey);
 
 export interface VectorSearchResult {
   id: string;
@@ -54,6 +61,7 @@ export async function vectorSearch(
   queryVector: number[],
   topK: number = 5
 ): Promise<VectorSearchResult[]> {
+  const supabase = getSupabaseClient();
   const { data, error } = await supabase.rpc("search_similar_chunks", {
     query_embedding: `[${queryVector.join(",")}]`,
     match_count: topK,
@@ -74,6 +82,7 @@ export async function findMatchingEntities(
   entityName: string,
   entityType?: string
 ): Promise<GraphSearchResult[]> {
+  const supabase = getSupabaseClient();
   let query = supabase
     .from("entities")
     .select("id, name, type")
@@ -99,6 +108,7 @@ export async function findMatchingEntities(
 export async function findHerbsForCondition(
   conditionName: string
 ): Promise<GraphSearchResult[]> {
+  const supabase = getSupabaseClient();
   // Find the condition entity first
   const { data: conditions } = await supabase
     .from("entities")
@@ -160,6 +170,7 @@ export async function getHerbCompoundsAndEffects(
 ): Promise<GraphRelation[]> {
   if (herbIds.length === 0) return [];
 
+  const supabase = getSupabaseClient();
   // Get ALL relations from herbs first (without type filter)
   const { data: allRelations, error } = await supabase
     .from("relations")
@@ -225,6 +236,7 @@ export async function traverseGraph(
 ): Promise<GraphRelation[]> {
   if (startEntityIds.length === 0 || maxHops === 0) return [];
 
+  const supabase = getSupabaseClient();
   const allRelations: GraphRelation[] = [];
   let currentIds = startEntityIds;
 
@@ -261,6 +273,7 @@ export async function getJournalsForEmbeddings(
 ): Promise<Map<string, any>> {
   if (embeddingIds.length === 0) return new Map();
 
+  const supabase = getSupabaseClient();
   const { data: embeddings } = await supabase
     .from("embeddings")
     .select(
