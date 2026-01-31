@@ -66,10 +66,10 @@ export function Navbar() {
               <Link href="/#features">Fitur</Link>
             </Button>
             <Button variant="ghost" asChild className="text-sm text-white/80 hover:text-emerald-300 hover:bg-white/5 transition-all duration-200 font-medium px-3 rounded-xl">
-              <Link href="/document">Dokumen</Link>
+              <Link href="/document">Perpustakaan</Link>
             </Button>
             <Button variant="ghost" asChild className="text-sm text-white/80 hover:text-emerald-300 hover:bg-white/5 transition-all duration-200 font-medium px-3 rounded-xl">
-              <Link href="/graph">Graph</Link>
+              <Link href="/graph">Knowledge Graph</Link>
             </Button>
           </div>
           {/* Kanan: Tombol Summary */}
@@ -78,9 +78,9 @@ export function Navbar() {
               asChild
               className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg shadow-green-500/25 hover:shadow-green-500/40 transition-all duration-300 hover:scale-105 font-medium px-5 py-2 text-sm"
             >
-              <Link href="/analysis">
+              <Link href="/summary">
                 <Sparkles className="w-4 h-4 mr-2" />
-                Summary
+                Evaluasi
               </Link>
             </Button>
           </div>

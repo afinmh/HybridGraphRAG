@@ -64,9 +64,9 @@ export function Footer() {
                 { label: "Beranda", href: "/" },
                 { label: "Tentang", href: "/#about" },
                 { label: "Fitur", href: "/#features" },
-                { label: "Dokumen", href: "/document" },
+                { label: "Perpustakaan", href: "/document" },
                 { label: "Knowledge Graph", href: "/graph" },
-                { label: "AI Summary", href: "/analysis" },
+                { label: "Evaluasi", href: "/summary" },
               ].map((link, idx) => (
                 <li key={idx}>
                   <Link
