@@ -21,8 +21,8 @@ async function getEmbeddingPipeline() {
   if (!embeddingPipeline) {
     embeddingPipeline = await pipeline(
       "feature-extraction",
-      "Xenova/bge-small-en-v1.5",
-      { quantized: false }
+      "Xenova/all-MiniLM-L6-v2",
+      { quantized: true } // Use quantized for faster loading on Vercel
     );
   }
   return embeddingPipeline;

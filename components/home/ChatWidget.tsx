@@ -142,17 +142,33 @@ export function ChatWidget() {
 
     // System Readiness State
     const [isSystemReady, setIsSystemReady] = useState(false);
+    const [warmupError, setWarmupError] = useState<string | null>(null);
 
-    // Simulate Model Loading / Warming Up
+    // Real Model Warmup via API
     useEffect(() => {
         if (isOpen && !isSystemReady) {
-            // Simulate a "download" or "warmup" delay
-            const timer = setTimeout(() => {
-                setIsSystemReady(true);
-            }, 3000);
-            return () => clearTimeout(timer);
+            const warmupSystem = async () => {
+                try {
+                    setWarmupError(null);
+                    const response = await fetch("/api/warmup");
+                    const data = await response.json();
+
+                    if (data.status === "ready") {
+                        setIsSystemReady(true);
+                    } else {
+                        setWarmupError(data.message || "System not ready");
+                    }
+                } catch (error) {
+                    console.error("Warmup failed:", error);
+                    setWarmupError("Failed to initialize AI system");
+                    // Still allow usage after error - will try again on query
+                    setTimeout(() => setIsSystemReady(true), 5000);
+                }
+            };
+
+            warmupSystem();
         }
-    }, [isOpen]);
+    }, [isOpen, isSystemReady]);
 
     // Window Size State
     const [size, setSize] = useState({ width: 380, height: 500 });
@@ -463,13 +479,13 @@ export function ChatWidget() {
                                             height={24}
                                             className="w-6 h-6 object-contain"
                                         />
-                                        <span className={`absolute top-0 right-0 w-1.5 h-1.5 rounded-full animate-ping ${isSystemReady ? 'bg-emerald-400' : 'bg-yellow-400'}`} />
-                                        <span className={`absolute top-0 right-0 w-1.5 h-1.5 rounded-full ${isSystemReady ? 'bg-emerald-400' : 'bg-yellow-400'}`} />
+                                        <span className={`absolute top-0 right-0 w-1.5 h-1.5 rounded-full animate-ping ${isSystemReady ? 'bg-emerald-400' : warmupError ? 'bg-red-400' : 'bg-yellow-400'}`} />
+                                        <span className={`absolute top-0 right-0 w-1.5 h-1.5 rounded-full ${isSystemReady ? 'bg-emerald-400' : warmupError ? 'bg-red-400' : 'bg-yellow-400'}`} />
                                     </div>
                                     <div>
                                         <h3 className="font-bold text-sm text-white tracking-wide font-mono">HERLIST</h3>
-                                        <p className={`text-[10px] font-mono tracking-wider ${isSystemReady ? 'text-emerald-400/80' : 'text-yellow-400/80 animate-pulse'}`}>
-                                            {isSystemReady ? 'SYSTEM ONLINE' : 'WARMING UP...'}
+                                        <p className={`text-[10px] font-mono tracking-wider ${isSystemReady ? 'text-emerald-400/80' : warmupError ? 'text-red-400/80' : 'text-yellow-400/80 animate-pulse'}`}>
+                                            {isSystemReady ? 'SYSTEM ONLINE' : warmupError ? 'SYSTEM ERROR' : 'LOADING AI MODEL...'}
                                         </p>
                                     </div>
                                 </div>
