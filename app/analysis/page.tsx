@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Loader2, Search, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -28,7 +28,7 @@ interface SearchResults {
   };
 }
 
-export default function AnalysisPage() {
+function AnalysisContent() {
   const searchParams = useSearchParams();
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
@@ -178,5 +178,17 @@ export default function AnalysisPage() {
         </AnimatePresence>
       </div>
     </div>
+  );
+}
+
+export default function AnalysisPage() {
+  return (
+    <Suspense fallback={
+      <div className="w-full h-screen flex items-center justify-center bg-[#020617]">
+        <Loader2 className="w-10 h-10 text-emerald-500 animate-spin" />
+      </div>
+    }>
+      <AnalysisContent />
+    </Suspense>
   );
 }

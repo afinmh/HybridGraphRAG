@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Database, Share2, Sparkles, CheckCircle2, Network, Dna, ShieldCheck, Zap, MousePointerClick } from "lucide-react";
 import Image from "next/image";
-import { motion, useInView, AnimatePresence } from "framer-motion";
+import { motion, useInView, AnimatePresence, Variants } from "framer-motion";
 
 export function About() {
   const ref = useRef(null);
@@ -14,25 +14,25 @@ export function About() {
   const isCoreInView = useInView(coreRef, { once: true, margin: "-50px" });
   const [isActivated, setIsActivated] = useState(false);
 
-  const containerVariants = {
+  const containerVariants: Variants = {
     hidden: { opacity: 0 },
     visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
   };
 
-  const itemVariants = {
+  const itemVariants: Variants = {
     hidden: { opacity: 0, y: 30 },
     visible: { opacity: 1, y: 0, transition: { duration: 1.5, ease: "easeOut" } },
   };
 
-  const coreVariants = {
+  const coreVariants: Variants = {
     hidden: { opacity: 0, scale: 0.8 },
     visible: { opacity: 1, scale: 1, transition: { duration: 1.5, ease: "easeOut" } },
   };
 
   // Variants for the features (entering from center)
-  const sideFeatureVariants = {
-    closed: { opacity: 0, scale: 0.8, filter: "blur(10px)", pointerEvents: "none" as const },
-    open: { opacity: 1, scale: 1, filter: "blur(0px)", pointerEvents: "auto" as const, transition: { duration: 0.8, ease: "backOut" } }
+  const sideFeatureVariants: Variants = {
+    closed: { opacity: 0, scale: 0.8, filter: "blur(10px)", pointerEvents: "none" },
+    open: { opacity: 1, scale: 1, filter: "blur(0px)", pointerEvents: "auto", transition: { duration: 0.8, ease: "backOut" } }
   };
 
   return (
