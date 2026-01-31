@@ -2,7 +2,7 @@
  * Query Service - Hybrid Graph RAG search logic
  */
 
-import { pipeline } from "@xenova/transformers";
+import { pipeline, env } from "@xenova/transformers";
 import { extractQueryEntities, generateAnswer, translateQueryToEnglish, type QueryEntity } from "./mistral.service";
 import {
   vectorSearch,
@@ -15,6 +15,10 @@ import {
   type GraphRelation,
 } from "@/repositories/search.repository";
 
+// Configure transformers.js for serverless environment
+env.useBrowserCache = false;
+env.allowLocalModels = false;
+
 let embeddingPipeline: any = null;
 
 async function getEmbeddingPipeline() {
@@ -22,13 +26,15 @@ async function getEmbeddingPipeline() {
     try {
       embeddingPipeline = await pipeline(
         "feature-extraction",
-        "Xenova/all-MiniLM-L6-v2"
+        "Xenova/all-MiniLM-L6-v2",
+        { quantized: true }
       );
     } catch (e) {
       console.error("Failed loading embedder, trying fallback...", e);
       embeddingPipeline = await pipeline(
         "feature-extraction",
-        "sentence-transformers/all-MiniLM-L6-v2"
+        "sentence-transformers/all-MiniLM-L6-v2",
+        { quantized: true }
       );
     }
   }

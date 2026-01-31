@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
-import { pipeline } from "@xenova/transformers";
+import { pipeline, env } from "@xenova/transformers";
+
+// Configure transformers.js for serverless environment
+env.useBrowserCache = false;
+env.allowLocalModels = false;
 
 let isWarmedUp = false;
 let embeddingPipeline: any = null;
@@ -14,17 +18,21 @@ export async function GET() {
             console.log("🔄 Warming up embedding model (Xenova/all-MiniLM-L6-v2)...");
 
             try {
-                // Initialize the embedding pipeline (same pattern as Si-Mbah - no options)
+                // Initialize the embedding pipeline with quantized model for faster loading
                 embeddingPipeline = await pipeline(
                     "feature-extraction",
-                    "Xenova/all-MiniLM-L6-v2"
+                    "Xenova/all-MiniLM-L6-v2",
+                    {
+                        quantized: true,
+                    }
                 );
                 console.log("✅ Embedder loaded!");
             } catch (e) {
                 console.error("❌ Failed loading embedder, trying fallback...", e);
                 embeddingPipeline = await pipeline(
                     "feature-extraction",
-                    "sentence-transformers/all-MiniLM-L6-v2"
+                    "sentence-transformers/all-MiniLM-L6-v2",
+                    { quantized: true }
                 );
                 console.log("✅ Fallback embedder loaded!");
             }
