@@ -98,6 +98,22 @@ const ChatMessage = ({ msg, language }: { msg: Message, language: 'id' | 'en' })
                                                 </div>
                                             </div>
                                         ))}
+
+                                        {/* Detail Link (Moved Inside Sources) */}
+                                        {msg.fullResponse && (
+                                            <div className="mt-2 text-right">
+                                                <Link
+                                                    href="/analysis?mode=cached"
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    onClick={handleViewDetail}
+                                                    className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs text-emerald-400/80 hover:text-emerald-400 transition-colors font-mono tracking-wide py-1 px-2 hover:bg-emerald-500/10 rounded-lg group/btn"
+                                                >
+                                                    {language === 'en' ? 'FULL ANALYSIS' : 'ANALISIS LENGKAP'}
+                                                    <Maximize2 className="w-3 h-3 group-hover/btn:scale-110 transition-transform" />
+                                                </Link>
+                                            </div>
+                                        )}
                                     </div>
                                 </motion.div>
                             )}
@@ -105,21 +121,7 @@ const ChatMessage = ({ msg, language }: { msg: Message, language: 'id' | 'en' })
                     </div>
                 )}
 
-                {/* Detail Link */}
-                {msg.role === 'assistant' && msg.fullResponse && (
-                    <div className="mt-2 text-right">
-                        <Link
-                            href="/analysis?mode=cached"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={handleViewDetail}
-                            className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs text-emerald-400/80 hover:text-emerald-400 transition-colors font-mono tracking-wide py-1 px-2 hover:bg-emerald-500/10 rounded-lg group/btn"
-                        >
-                            {language === 'en' ? 'FULL ANALYSIS' : 'ANALISIS LENGKAP'}
-                            <Maximize2 className="w-3 h-3 group-hover/btn:scale-110 transition-transform" />
-                        </Link>
-                    </div>
-                )}
+
 
                 <span className="text-[10px] opacity-40 mt-1 block font-mono">
                     {new Date(Number(msg.id) || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}

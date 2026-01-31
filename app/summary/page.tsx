@@ -191,9 +191,9 @@ export default function SummaryPage() {
                 <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_60%_at_50%_50%,#000_70%,transparent_100%)]" />
             </div>
 
-            {/* Header */}
-            <div className="sticky top-0 z-50 bg-[#020617]/80 backdrop-blur-xl border-b border-white/5">
-                <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+            <div className="container mx-auto px-8 md:px-12 py-12 md:py-16 max-w-7xl relative z-10 space-y-8">
+                {/* Header */}
+                <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
                         <Link href="/">
                             <Button variant="ghost" size="sm" className="bg-white/5 border border-white/10 text-gray-300 hover:text-white hover:bg-white/10 rounded-full gap-2">
@@ -215,9 +215,6 @@ export default function SummaryPage() {
                         ))}
                     </div>
                 </div>
-            </div>
-
-            <div className="container mx-auto px-4 py-8 max-w-7xl relative z-10 space-y-8">
 
                 {/* --- 1. OVERVIEW GRID --- */}
                 <div className="grid lg:grid-cols-12 gap-6 bg-black/40 border border-white/10 rounded-3xl p-6 backdrop-blur-sm">
