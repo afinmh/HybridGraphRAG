@@ -1,187 +1,248 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useRef, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Check, ArrowRight, Sparkles, Leaf, BookOpen } from "lucide-react";
+import { ArrowRight, Database, Share2, Sparkles, CheckCircle2, Network, Dna, ShieldCheck, Zap, MousePointerClick } from "lucide-react";
+import Image from "next/image";
+import { motion, useInView, AnimatePresence } from "framer-motion";
 
 export function About() {
-  const [mounted, setMounted] = useState(false);
+  const ref = useRef(null);
+  const coreRef = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const isCoreInView = useInView(coreRef, { once: true, margin: "-50px" });
+  const [isActivated, setIsActivated] = useState(false);
 
-  useEffect(() => {
-    const t = setTimeout(() => setMounted(true), 200);
-    return () => clearTimeout(t);
-  }, []);
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: { opacity: 1, y: 0, transition: { duration: 1.5, ease: "easeOut" } },
+  };
+
+  const coreVariants = {
+    hidden: { opacity: 0, scale: 0.8 },
+    visible: { opacity: 1, scale: 1, transition: { duration: 1.5, ease: "easeOut" } },
+  };
+
+  // Variants for the features (entering from center)
+  const sideFeatureVariants = {
+    closed: { opacity: 0, scale: 0.8, filter: "blur(10px)", pointerEvents: "none" as const },
+    open: { opacity: 1, scale: 1, filter: "blur(0px)", pointerEvents: "auto" as const, transition: { duration: 0.8, ease: "backOut" } }
+  };
 
   return (
-    <section
-      id="about"
-      className="relative py-32 px-6 sm:px-8 lg:px-12 bg-white dark:bg-gray-950 overflow-hidden"
-    >
-      <div className="pointer-events-none absolute inset-0 opacity-70 mix-blend-multiply">
-        <div className="absolute -right-32 top-10 w-80 h-80 bg-emerald-200/40 dark:bg-emerald-500/10 blur-3xl rounded-full" />
-        <div className="absolute -left-24 bottom-0 w-72 h-72 bg-green-100/60 dark:bg-green-500/10 blur-3xl rounded-full" />
+    <section id="about" className="relative py-24 lg:py-32 overflow-hidden bg-gray-50/50 dark:bg-gray-950">
+      {/* Background Ambience */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-r from-green-200/20 via-emerald-200/20 to-teal-200/20 dark:from-green-900/10 dark:via-emerald-900/10 dark:to-teal-900/10 rounded-full blur-[120px]" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_60%_at_50%_50%,#000_70%,transparent_100%)]" />
       </div>
-      <div className="max-w-7xl mx-auto">
-        <div className="grid lg:grid-cols-2 gap-20 items-center relative z-10">
-          <div
-            className={`transition-all duration-[1400ms] ease-[cubic-bezier(0.23,1,0.32,1)] transform
-              ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"}
-            `}
-          >
-            <Badge
-              variant="outline"
-              className="mb-6 px-4 py-2 border-green-500/20 bg-green-50/80 dark:bg-green-950/40 text-green-700 dark:text-green-300 font-medium"
-            >
-              Tentang Sistem
-            </Badge>
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white mb-6 leading-tight tracking-tight">
-              Pengetahuan Herbal di Ujung Jari Anda
-            </h2>
-            <p className="text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-6 leading-relaxed font-light">
-              SumberHerbal adalah sistem informasi berbasis AI yang dikembangkan
-              untuk membantu masyarakat Indonesia dalam mengakses dan memahami
-              informasi tentang tanaman herbal dengan lebih mudah dan akurat.
-            </p>
-            <p className="text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-10 leading-relaxed font-light">
-              Dengan menggunakan teknologi{" "}
-              <span className="font-semibold text-green-600 dark:text-green-400">
-                Hybrid Graph RAG
-              </span>{" "}
-              (Retrieval-Augmented Generation), sistem ini mampu memberikan
-              jawaban yang kontekstual dengan memanfaatkan hubungan antar
-              tanaman, khasiat, dan penggunaannya.
-            </p>
 
-            <div className="space-y-6 mb-10">
-              <div className="flex items-start space-x-4 group">
-                <div className="w-7 h-7 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5 shadow-lg shadow-green-500/20 group-hover:scale-110 transition-transform duration-300">
-                  <Check className="w-4 h-4 text-white" />
-                </div>
-                <div>
-                  <h4 className="font-semibold text-lg text-gray-900 dark:text-white mb-1">
-                    Basis Data Komprehensif
-                  </h4>
-                  <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
-                    Dikumpulkan dari jurnal ilmiah dan penelitian terpercaya
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-start space-x-4 group">
-                <div className="w-7 h-7 bg-gradient-to-br from-emerald-500 to-green-500 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5 shadow-lg shadow-emerald-500/20 group-hover:scale-110 transition-transform duration-300">
-                  <Check className="w-4 h-4 text-white" />
-                </div>
-                <div>
-                  <h4 className="font-semibold text-lg text-gray-900 dark:text-white mb-1">
-                    Pencarian Kontekstual
-                  </h4>
-                  <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
-                    Memahami maksud pertanyaan dan memberikan jawaban relevan
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-start space-x-4 group">
-                <div className="w-7 h-7 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5 shadow-lg shadow-green-500/20 group-hover:scale-110 transition-transform duration-300">
-                  <Check className="w-4 h-4 text-white" />
-                </div>
-                <div>
-                  <h4 className="font-semibold text-lg text-gray-900 dark:text-white mb-1">
-                    Sumber Terverifikasi
-                  </h4>
-                  <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
-                    Setiap informasi dilengkapi dengan referensi jurnal penelitian
-                  </p>
-                </div>
-              </div>
+      <div className="container px-4 md:px-6 mx-auto relative z-10" ref={ref}>
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate={isInView ? "visible" : "hidden"}
+          className="flex flex-col items-center"
+        >
+          {/* Centered Header */}
+          <div className="text-center max-w-3xl mb-16 lg:mb-24 space-y-6">
+            <motion.div variants={itemVariants} className="flex justify-center">
+              <Badge variant="secondary" className="px-4 py-1.5 bg-white/80 dark:bg-white/10 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-300 shadow-sm backdrop-blur-sm cursor-default">
+                <Sparkles className="w-3.5 h-3.5 mr-2 text-green-500 animate-pulse" />
+                The Core Technology
+              </Badge>
+            </motion.div>
+
+            <motion.h2 variants={itemVariants} className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-gray-900 dark:text-white leading-tight">
+              Bukan Sekadar Mitos, <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-600 via-emerald-500 to-teal-500">
+                Ini Fakta Berbasis Riset
+              </span>
+            </motion.h2>
+
+            <motion.p variants={itemVariants} className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+              Klik inti sistem di bawah untuk melihat bagaimana ekosistem AI kami bekerja menghubungkan ratusan data medis secara realtime.
+            </motion.p>
+          </div>
+
+          {/* 3-Column Interactive Layout */}
+          <div className="grid lg:grid-cols-3 gap-8 w-full items-center relative min-h-[420px]">
+
+            {/* Left Column: Features (Hidden Initially) */}
+            <motion.div
+              className="space-y-12 order-2 lg:order-1 relative z-10 lg:-translate-y-32"
+              initial="closed"
+              animate={isActivated ? "open" : "closed"}
+              variants={{
+                closed: { opacity: 0, x: 100 },
+                open: { opacity: 1, x: 0, transition: { staggerChildren: 0.2, delayChildren: 0.3 } }
+              }}
+            >
+              {[
+                { title: "Sumber Pengetahuan", desc: "Terhubung langsung dengan puluhan jurnal ilmiah sebagai sumber rujukan dari setiap jawaban.", icon: Database, color: "text-blue-500 bg-blue-50 dark:bg-blue-900/20" },
+                { title: "Analisis Kontekstual", desc: "Memahami hubungan antara gejala, penyakit, dan senyawa aktif semua tanaman herbal.", icon: Network, color: "text-purple-500 bg-purple-50 dark:bg-purple-900/20" }
+              ].map((item, i) => (
+                <motion.div variants={sideFeatureVariants} key={i} className="flex lg:flex-row flex-col lg:text-right text-center items-center lg:items-start gap-4 group">
+                  <div className="flex-1">
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-green-600 transition-colors">{item.title}</h3>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">{item.desc}</p>
+                  </div>
+                  <div className={`flex-shrink-0 w-12 h-12 rounded-2xl ${item.color} flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform duration-300 mx-auto lg:mx-0`}>
+                    <item.icon className="w-6 h-6" />
+                  </div>
+                </motion.div>
+              ))}
+            </motion.div>
+
+            {/* Center Column: The Interactive Core */}
+            <div ref={coreRef} className="relative h-[320px] lg:h-[420px] w-full flex items-center justify-center order-1 lg:order-2 z-20">
+              <motion.div
+                variants={coreVariants}
+                initial="hidden"
+                animate={isCoreInView ? "visible" : "hidden"}
+                className="w-full h-full flex items-center justify-center"
+              >
+                {/* Clickable Area */}
+                <motion.div
+                  className="relative cursor-pointer group"
+                  onClick={() => setIsActivated(!isActivated)}
+                  animate={{
+                    scale: isActivated ? 1 : 1.5,
+                    rotate: isActivated ? 0 : 0
+                  }}
+                  transition={{ type: "spring", stiffness: 260, damping: 20 }}
+                  whileHover={{ scale: isActivated ? 1.05 : 1.55 }}
+                  whileTap={{ scale: 0.9 }}
+                >
+                  {/* Shockwave Effect when activated */}
+                  <AnimatePresence>
+                    {isActivated && (
+                      <motion.div
+                        initial={{ opacity: 0.5, scale: 1 }}
+                        animate={{ opacity: 0, scale: 2 }}
+                        exit={{ opacity: 0, scale: 0 }}
+                        transition={{ duration: 0.5 }}
+                        className="absolute inset-0 rounded-full bg-green-400/30 dark:bg-green-500/20 z-0"
+                      />
+                    )}
+                  </AnimatePresence>
+
+                  {/* Rotating Rings (Scale with parent) */}
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px]">
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: isActivated ? 10 : 30, repeat: Infinity, ease: "linear" }}
+                      className={`w-full h-full border border-dashed rounded-full transition-colors duration-500 ${isActivated ? "border-green-400/60 dark:border-green-600/60" : "border-green-300/40 dark:border-green-700/30"}`}
+                    />
+                  </div>
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[220px] h-[220px]">
+                    <motion.div
+                      animate={{ rotate: -360 }}
+                      transition={{ duration: isActivated ? 15 : 25, repeat: Infinity, ease: "linear" }}
+                      className={`w-full h-full border-[1.5px] rounded-full transition-colors duration-500 ${isActivated ? "border-emerald-500/60 dark:border-emerald-400/50" : "border-emerald-300/50 dark:border-emerald-800/40"}`}
+                    />
+                  </div>
+
+                  {/* The Core Orb */}
+                  <div className="relative w-32 h-32 md:w-40 md:h-40 bg-gradient-to-b from-white to-green-50 dark:from-gray-800 dark:to-gray-900 rounded-full shadow-2xl border-4 border-white dark:border-gray-800 flex items-center justify-center overflow-hidden z-10">
+                    <div className={`absolute inset-0 bg-emerald-500/20 rounded-full blur-xl transition-all duration-500 ${isActivated ? "opacity-100 scale-150" : "opacity-50 animate-pulse"}`} />
+
+                    <motion.div
+                      animate={{ rotate: isActivated ? 360 : 0 }}
+                      transition={{ duration: 0.8, ease: "backOut" }}
+                      className="relative w-16 h-16 md:w-20 md:h-20"
+                    >
+                      <Image
+                        src="/home/thyme.png"
+                        alt="Inactive Mint"
+                        fill
+                        className={`object-contain transition-opacity duration-300 ${isActivated ? "opacity-0" : "opacity-100"}`}
+                      />
+                      <Image
+                        src="/home/mortars.png"
+                        alt="Active Mint"
+                        fill
+                        className={`object-contain transition-opacity duration-300 ${isActivated ? "opacity-100" : "opacity-0"}`}
+                      />
+                    </motion.div>
+
+                    {/* Inner particles */}
+                    <motion.div
+                      animate={{ rotate: 360, scale: isActivated ? [1, 1.1, 1] : 1 }}
+                      transition={{ rotate: { duration: 10, repeat: Infinity, ease: "linear" }, scale: { duration: 2, repeat: Infinity } }}
+                      className="absolute inset-[10px] border border-dashed border-green-200 dark:border-gray-700 rounded-full opacity-50"
+                    />
+                  </div>
+
+                  {/* Status Label */}
+                  <motion.div
+                    className={`absolute -bottom-10 left-1/2 -translate-x-1/2 flex items-center justify-center px-4 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-widest transition-all duration-300 whitespace-nowrap shadow-lg backdrop-blur-md border ${isActivated ? "bg-green-100/90 border-green-200 text-green-700 dark:bg-green-900/60 dark:border-green-800 dark:text-green-300 scale-110" : "bg-white/80 border-gray-200 text-gray-500 dark:bg-gray-800/80 dark:border-gray-700 dark:text-gray-400"}`}
+                  >
+                    {isActivated ? "System Active" : "Click Me!"}
+                  </motion.div>
+                </motion.div>
+
+                {/* Connecting lines (Only Visible when Activated) */}
+                <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 600 600">
+                  <motion.path
+                    initial={{ pathLength: 0, opacity: 0 }}
+                    animate={isActivated ? { pathLength: 1, opacity: 0.2 } : { pathLength: 0, opacity: 0 }}
+                    transition={{ duration: 1, ease: "easeInOut" }}
+                    d="M100 150 Q 300 300 150 450"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  />
+                  <motion.path
+                    initial={{ pathLength: 0, opacity: 0 }}
+                    animate={isActivated ? { pathLength: 1, opacity: 0.2 } : { pathLength: 0, opacity: 0 }}
+                    transition={{ duration: 1, ease: "easeInOut" }}
+                    d="M500 150 Q 300 300 450 450"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  />
+                </svg>
+              </motion.div>
             </div>
 
-            <Button
-              size="lg"
-              className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-xl shadow-green-500/25 hover:shadow-2xl hover:shadow-green-500/40 transition-all duration-300 hover:scale-105 text-base px-8 py-6 rounded-2xl font-medium"
-              asChild
+            {/* Right Column: Features (Hidden Initially) */}
+            <motion.div
+              className="space-y-12 order-3 relative z-10 lg:translate-y-32"
+              initial="closed"
+              animate={isActivated ? "open" : "closed"}
+              variants={{
+                closed: { opacity: 0, x: -100 },
+                open: { opacity: 1, x: 0, transition: { staggerChildren: 0.2, delayChildren: 0.3 } }
+              }}
             >
-              <a href="#technology">
-                Pelajari Teknologi
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </a>
-            </Button>
+              {[
+                { title: "Hindari Halusinasi", desc: "Jawaban yang dihasilkan selalu berdasarkan referensi yang ada, meminimalkan informasi yang salah.", icon: ShieldCheck, color: "text-emerald-500 bg-emerald-50 dark:bg-emerald-900/20" },
+                { title: "Respons Cepat", desc: "Optimasi vektor dan graph memungkinkan pencarian informasi kompleks dalam hitungan detik.", icon: Zap, color: "text-amber-500 bg-amber-50 dark:bg-amber-900/20" }
+              ].map((item, i) => (
+                <motion.div variants={sideFeatureVariants} key={i} className="flex lg:flex-row flex-col text-center lg:text-left items-center lg:items-start gap-4 group">
+                  <div className={`flex-shrink-0 w-12 h-12 rounded-2xl ${item.color} flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform duration-300 mx-auto lg:mx-0`}>
+                    <item.icon className="w-6 h-6" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-green-600 transition-colors">{item.title}</h3>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">{item.desc}</p>
+                  </div>
+                </motion.div>
+              ))}
+            </motion.div>
+
           </div>
 
-          <div
-            className={`relative transition-all duration-[1400ms] ease-[cubic-bezier(0.23,1,0.32,1)] transform delay-150
-              ${mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"}
-            `}
-          >
-            <div className="pointer-events-none absolute -inset-10 bg-gradient-to-br from-emerald-400/20 via-green-300/10 to-transparent blur-3xl" />
-            <Card className="relative bg-gradient-to-br from-green-50/95 to-emerald-50/95 dark:from-green-950/60 dark:to-emerald-950/60 border-green-200/60 dark:border-green-800/60 h-[500px] shadow-2xl shadow-green-500/10 overflow-hidden backdrop-blur-xl">
-              <CardContent className="p-8 h-full flex flex-col justify-between">
-                <div className="space-y-6">
-                  <div className="flex items-center space-x-4 p-4 bg-white/65 dark:bg-gray-900/60 rounded-xl backdrop-blur-sm hover:scale-105 transition-transform duration-300">
-                    <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-500 rounded-lg flex items-center justify-center">
-                      <Sparkles className="w-6 h-6 text-white" />
-                    </div>
-                    <div>
-                      <div className="font-semibold text-gray-900 dark:text-white">
-                        Vector Search
-                      </div>
-                      <div className="text-sm text-gray-600 dark:text-gray-400">
-                        Semantic similarity matching
-                      </div>
-                    </div>
-                  </div>
 
-                  <div className="flex items-center space-x-4 p-4 bg-white/65 dark:bg-gray-900/60 rounded-xl backdrop-blur-sm hover:scale-105 transition-transform duration-300">
-                    <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-green-500 rounded-lg flex items-center justify-center">
-                      <Leaf className="w-6 h-6 text-white" />
-                    </div>
-                    <div>
-                      <div className="font-semibold text-gray-900 dark:text-white">
-                        Knowledge Graph
-                      </div>
-                      <div className="text-sm text-gray-600 dark:text-gray-400">
-                        Relationship mapping
-                      </div>
-                    </div>
-                  </div>
 
-                  <div className="flex items-center space-x-4 p-4 bg-white/65 dark:bg-gray-900/60 rounded-xl backdrop-blur-sm hover:scale-105 transition-transform duration-300">
-                    <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-500 rounded-lg flex items-center justify-center">
-                      <BookOpen className="w-6 h-6 text-white" />
-                    </div>
-                    <div>
-                      <div className="font-semibold text-gray-900 dark:text-white">
-                        Answer Generation
-                      </div>
-                      <div className="text-sm text-gray-600 dark:text-gray-400">
-                        Context-aware responses
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="text-center p-6 bg-white/65 dark:bg-gray-900/60 rounded-xl backdrop-blur-sm border border-green-200/40 dark:border-green-800/40">
-                  <div className="text-4xl font-bold text-green-600 dark:text-green-400 mb-1 tracking-tight">
-                    Hybrid RAG
-                  </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">
-                    Vector + Graph Database
-                  </div>
-                  <div className="mt-3 flex items-center justify-center gap-4 text-[11px] text-gray-500 dark:text-gray-400">
-                    <span className="inline-flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                      Vector Search
-                    </span>
-                    <span className="inline-flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                      Knowledge Graph
-                    </span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+        </motion.div>
       </div>
     </section>
   );

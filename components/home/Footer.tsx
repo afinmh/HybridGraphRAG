@@ -7,9 +7,15 @@ import Link from "next/link";
 
 export function Footer() {
   return (
-    <footer className="bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 text-white py-20 px-6 sm:px-8 lg:px-12 border-t border-gray-800/50">
-      <div className="max-w-7xl mx-auto">
-        <div className="grid md:grid-cols-4 gap-16 mb-16">
+    <footer className="relative pt-24 pb-8 overflow-hidden bg-gray-50/50 dark:bg-gray-950 border-t border-gray-200 dark:border-gray-800">
+      {/* Background Ambience */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-r from-green-200/20 via-emerald-200/20 to-teal-200/20 dark:from-green-900/10 dark:via-emerald-900/10 dark:to-teal-900/10 rounded-full blur-[120px]" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_60%_at_50%_50%,#000_70%,transparent_100%)]" />
+      </div>
+
+      <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 relative z-10">
+        <div className="grid md:grid-cols-4 gap-12 lg:gap-16 mb-24">
           <div className="md:col-span-2">
             <div className="flex items-center space-x-4 mb-8">
               <div className="relative">
@@ -23,123 +29,86 @@ export function Footer() {
                 />
               </div>
               <div>
-                <span className="text-2xl font-bold bg-gradient-to-r from-green-400 via-emerald-400 to-green-400 bg-clip-text text-transparent bg-[length:200%_auto] animate-gradient">
+                <span className="text-2xl font-bold bg-gradient-to-r from-green-600 via-emerald-500 to-green-600 dark:from-green-400 dark:via-emerald-400 dark:to-green-400 bg-clip-text text-transparent">
                   SumberHerbal
                 </span>
-                <p className="text-xs font-medium text-gray-500">AI-Powered Herbal Intelligence</p>
+                <p className="text-xs font-medium text-gray-500 dark:text-gray-400">AI-Powered Herbal Intelligence</p>
               </div>
             </div>
-            <p className="text-gray-400 mb-8 leading-relaxed max-w-md text-base">
+            <p className="text-gray-600 dark:text-gray-400 mb-8 leading-relaxed max-w-md text-base">
               Sistem informasi tanaman herbal berbasis AI yang menggabungkan
               teknologi Retrieval-Augmented Generation dengan Graph Database
               untuk Indonesia.
             </p>
             <div className="flex space-x-3">
-              <a
-                href="#"
-                className="w-12 h-12 bg-gray-800/50 hover:bg-gradient-to-br hover:from-green-600 hover:to-emerald-600 rounded-xl flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-lg hover:shadow-green-500/25 backdrop-blur-sm border border-gray-700/50 hover:border-green-500/50"
-              >
-                <Github className="w-5 h-5" />
-              </a>
-              <a
-                href="#"
-                className="w-12 h-12 bg-gray-800/50 hover:bg-gradient-to-br hover:from-green-600 hover:to-emerald-600 rounded-xl flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-lg hover:shadow-green-500/25 backdrop-blur-sm border border-gray-700/50 hover:border-green-500/50"
-              >
-                <Mail className="w-5 h-5" />
-              </a>
-              <a
-                href="#"
-                className="w-12 h-12 bg-gray-800/50 hover:bg-gradient-to-br hover:from-green-600 hover:to-emerald-600 rounded-xl flex items-center justify-center transition-all duration-300 hover:scale-110 hover:shadow-lg hover:shadow-green-500/25 backdrop-blur-sm border border-gray-700/50 hover:border-green-500/50"
-              >
-                <Linkedin className="w-5 h-5" />
-              </a>
+              {[
+                { icon: Github, href: "#" },
+                { icon: Mail, href: "#" },
+                { icon: Linkedin, href: "#" }
+              ].map((social, idx) => (
+                <a
+                  key={idx}
+                  href={social.href}
+                  className="w-10 h-10 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 hover:border-green-200 dark:hover:border-green-800 hover:shadow-lg hover:shadow-green-500/10 transition-all duration-300 transform hover:scale-105"
+                >
+                  <social.icon className="w-5 h-5" />
+                </a>
+              ))}
             </div>
           </div>
 
           <div>
-            <h4 className="font-bold text-lg mb-6 text-green-400">Navigasi</h4>
+            <h4 className="font-bold text-lg mb-6 text-gray-900 dark:text-white">Navigasi</h4>
             <ul className="space-y-4">
-              <li>
-                <a
-                  href="#home"
-                  className="text-gray-400 hover:text-green-400 transition-colors text-base hover:translate-x-1 inline-block transition-transform"
-                >
-                  Beranda
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#features"
-                  className="text-gray-400 hover:text-green-400 transition-colors text-base hover:translate-x-1 inline-block transition-transform"
-                >
-                  Fitur
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#about"
-                  className="text-gray-400 hover:text-green-400 transition-colors text-base hover:translate-x-1 inline-block transition-transform"
-                >
-                  Tentang
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#technology"
-                  className="text-gray-400 hover:text-green-400 transition-colors"
-                >
-                  Teknologi
-                </a>
-              </li>
-              <li>
-                <Link
-                  href="/query"
-                  className="text-gray-400 hover:text-green-400 transition-colors"
-                >
-                  Cari Herbal
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/upload"
-                  className="text-gray-400 hover:text-green-400 transition-colors"
-                >
-                  Upload Jurnal
-                </Link>
-              </li>
+              {[
+                { label: "Beranda", href: "#home" },
+                { label: "Fitur", href: "#features" },
+                { label: "Tentang", href: "#about" },
+                { label: "Teknologi", href: "#technology" },
+                { label: "Cari Herbal", href: "/query" },
+                { label: "Upload Jurnal", href: "/upload" }
+              ].map((link, idx) => (
+                <li key={idx}>
+                  <Link
+                    href={link.href}
+                    className="text-gray-600 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 transition-colors text-sm font-medium hover:translate-x-1 inline-block"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 
           <div>
-            <h4 className="font-bold text-lg mb-4 text-green-400">
+            <h4 className="font-bold text-lg mb-6 text-gray-900 dark:text-white">
               Penelitian
             </h4>
-            <p className="text-gray-400 text-sm leading-relaxed mb-4">
+            <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed mb-6">
               Dikembangkan sebagai bagian dari penelitian tugas akhir tentang
               implementasi Hybrid Graph RAG untuk sistem informasi herbal.
             </p>
             <Badge
               variant="outline"
-              className="border-green-700 text-green-400"
+              className="border-green-200 dark:border-green-800 text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20"
             >
-              Academic Research 2025
+              Academic Research 2026
             </Badge>
           </div>
         </div>
 
-        <div className="border-t border-gray-800 pt-8">
+        <div className="border-t border-gray-200 dark:border-gray-800 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-gray-500 text-sm">
-              &copy; 2025 SumberHerbal. Dibuat untuk keperluan penelitian
-              akademik.
+            <p className="text-gray-500 dark:text-gray-500 text-sm text-center md:text-left">
+              &copy; 2026 SumberHerbal. Dibuat untuk keperluan penelitian akademik.
             </p>
-            <div className="flex space-x-6 text-sm text-gray-500">
-              <a href="#" className="hover:text-green-400 transition-colors">
+            <div className="flex space-x-6 text-sm text-gray-500 dark:text-gray-500">
+              <Link href="#" className="hover:text-green-600 dark:hover:text-green-400 transition-colors">
                 Privacy Policy
-              </a>
-              <a href="#" className="hover:text-green-400 transition-colors">
+              </Link>
+              <Link href="#" className="hover:text-green-600 dark:hover:text-green-400 transition-colors">
                 Terms of Service
-              </a>
+              </Link>
             </div>
           </div>
         </div>

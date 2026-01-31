@@ -1,17 +1,12 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Sparkles, Leaf, Search } from "lucide-react";
 import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 
 export function Hero() {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    const t = setTimeout(() => setMounted(true), 300);
-    return () => clearTimeout(t);
-  }, []);
-
   return (
     <section
       id="home"
@@ -28,18 +23,19 @@ export function Hero() {
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
 
       {/* Konten utama */}
-      <div className="relative z-20 h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center">
+      <div className="relative z-20 h-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center">
         <div className="grid md:grid-cols-2 gap-10 w-full items-center">
           {/* Kiri: Teks */}
-          <div
-            className={`space-y-6 transform transition-all duration-[1600ms] ease-[cubic-bezier(0.23,1,0.32,1)]
-              ${mounted ? "opacity-100 translate-x-10" : "opacity-0 -translate-x-20"}
-            `}
+          <motion.div
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 1.0, ease: "easeOut" }}
+            className="space-y-6"
           >
-            <div className="inline-flex items-center px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-400/40 text-emerald-100 text-xs font-medium shadow-sm backdrop-blur-sm">
-              <Sparkles className="w-3 h-3 mr-1" />
+            <Badge variant="secondary" className="px-4 py-1.5 bg-white/80 dark:bg-white/10 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-300 shadow-sm backdrop-blur-sm cursor-default">
+              <Sparkles className="w-3.5 h-3.5 mr-2 text-green-500 animate-pulse" />
               Asisten AI untuk rekomendasi herbal Anda
-            </div>
+            </Badge>
 
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white leading-tight">
               Sumber Informasi
@@ -49,7 +45,7 @@ export function Hero() {
             </h1>
 
             <p className="text-sm sm:text-base text-gray-200 max-w-xl">
-              Tidak perlu lagi bingung membaca ribuan halaman riset. AI kami menggunakan metode Retrieval-Augmented Generation (RAG) untuk merangkum fakta khasiat, dosis, dan efek samping langsung dari jurnal ilmiah tepercaya.
+              Tidak perlu bingung baca ribuan jurnal. AI kami menggunakan metode Retrieval-Augmented Generation (RAG) untuk merangkum informasi khasiat, dosis, dan efek samping langsung dari jurnal ilmiah.
             </p>
 
             <div className="flex flex-wrap items-center gap-3">
@@ -85,13 +81,14 @@ export function Hero() {
                 Rekomendasi herbal personal sesuai kebutuhan Anda
               </div>
             </div>
-          </div>
+          </motion.div>
 
           {/* Kanan: Kartu highlight */}
-          <div
-            className={`hidden md:flex justify-end transform transition-all duration-[1600ms] ease-[cubic-bezier(0.23,1,0.32,1)] delay-300
-              ${mounted ? "opacity-100 -translate-x-10" : "opacity-0 translate-x-5"}
-            `}
+          <motion.div
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 1.0, delay: 0.8, ease: "easeOut" }}
+            className="hidden md:flex justify-end"
           >
             <div className="relative w-full max-w-md">
               <div className="absolute -inset-10 bg-gradient-to-br from-emerald-400/30 via-green-300/10 to-transparent blur-3xl" />
@@ -100,7 +97,7 @@ export function Hero() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-xs font-medium text-emerald-600">Jurnal terverifikasi</p>
-                    <p className="text-lg font-semibold text-gray-900">+1500</p>
+                    <p className="text-lg font-semibold text-gray-900">+50</p>
                   </div>
                   <div className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-semibold flex items-center gap-1">
                     <Sparkles className="w-3 h-3" />
@@ -130,7 +127,7 @@ export function Hero() {
                 </div>
               </div>
             </div>
-          </div>
+          </motion.div>
         </div>
       </div>
     </section>

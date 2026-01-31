@@ -29,6 +29,7 @@ export interface VectorSearchResult {
     title: string;
     author: string;
     year: string;
+    file_url: string;
   };
 }
 
@@ -193,7 +194,7 @@ export async function getHerbCompoundsAndEffects(
 
   // Filter compounds and effects manually (case-insensitive)
   const results: GraphRelation[] = [];
-  
+
   allRelations.forEach((rel: any) => {
     // Skip if source or target is null
     if (!rel.source || !rel.target) {

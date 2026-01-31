@@ -5,6 +5,7 @@ import { About } from "@/components/home/About";
 import { Technology } from "@/components/home/Technology";
 import { CTA } from "@/components/home/CTA";
 import { Footer } from "@/components/home/Footer";
+import { ChatWidget } from "@/components/home/ChatWidget";
 
 export default function Home() {
   return (
@@ -13,9 +14,8 @@ export default function Home() {
       <Hero />
       <About />
       <Features />
-      <Technology />
-      <CTA />
       <Footer />
+      <ChatWidget />
     </div>
   );
 }

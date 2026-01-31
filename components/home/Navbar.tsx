@@ -5,6 +5,7 @@ import { ArrowRight, Sparkles } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -20,7 +21,10 @@ export function Navbar() {
   }, []);
 
   return (
-    <nav
+    <motion.nav
+      initial={{ y: -100 }}
+      animate={{ y: 0 }}
+      transition={{ duration: 0.8, delay: 1.2, ease: "easeOut" }}
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300
         ${isScrolled
           ? 'bg-black/45 backdrop-blur-2xl border-b border-white/10 shadow-lg shadow-emerald-500/10'
@@ -79,6 +83,6 @@ export function Navbar() {
           </div>
         </div>
       </div>
-    </nav>
+    </motion.nav>
   );
 }

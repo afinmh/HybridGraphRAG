@@ -3,7 +3,7 @@
  */
 
 import { pipeline } from "@xenova/transformers";
-import { extractQueryEntities, generateAnswer, type QueryEntity } from "./mistral.service";
+import { extractQueryEntities, generateAnswer, translateQueryToEnglish, type QueryEntity } from "./mistral.service";
 import {
   vectorSearch,
   findMatchingEntities,
@@ -52,20 +52,27 @@ export interface HybridSearchResult {
  */
 export async function hybridSearch(
   query: string,
-  topK: number = 5
+  topK: number = 5,
+  language: 'id' | 'en' = 'id'
 ): Promise<HybridSearchResult> {
-  console.log(`\n=== Hybrid Search: "${query}" ===\n`);
+  console.log(`\n=== Hybrid Search: "${query}" (Lang: ${language}) ===\n`);
 
-  // Step 1: Extract entities from query
-  console.log("Step 1: Extracting query entities...");
   const apiKey = process.env.MISTRAL_API_KEY!;
-  const queryEntities = await extractQueryEntities(query, apiKey);
+
+  // Step 0: Translate query to English
+  console.log("Step 0: Translating query to English...");
+  const translatedQuery = await translateQueryToEnglish(query, apiKey);
+  console.log(`Original: "${query}" -> Translated: "${translatedQuery}"`);
+
+  // Step 1: Extract entities from query (USE TRANSLATED QUERY)
+  console.log("Step 1: Extracting query entities...");
+  const queryEntities = await extractQueryEntities(translatedQuery, apiKey);
   console.log("Query entities:", queryEntities);
 
-  // Step 2: Vector search
+  // Step 2: Vector search (USE TRANSLATED QUERY)
   console.log("\nStep 2: Vector search...");
   const pipe = await getEmbeddingPipeline();
-  const output = await pipe(query, { pooling: "mean", normalize: true });
+  const output = await pipe(translatedQuery, { pooling: "mean", normalize: true });
   const queryVector = Array.from(output.data) as number[];
 
   const vectorResults = await vectorSearch(queryVector, topK);
@@ -124,14 +131,25 @@ export async function hybridSearch(
 
   // Step 5: Generate answer using context
   console.log("\nStep 5: Generating answer from context...");
+
+  // Log herb-vector cross-reference info for debugging
+  const vectorText = vectorResults.map(v => v.text.toLowerCase()).join(" ");
+  const confirmedHerbsDebug = uniqueHerbs.filter(h =>
+    vectorText.includes(h.name.toLowerCase()) ||
+    vectorText.includes(h.name.toLowerCase().split(' ')[0])
+  );
+  console.log(`  - Confirmed herbs (in both vector & graph): ${confirmedHerbsDebug.map(h => h.name).join(", ") || "none"}`);
+  console.log(`  - Graph-only herbs: ${uniqueHerbs.filter(h => !confirmedHerbsDebug.includes(h)).map(h => h.name).join(", ") || "none"}`);
+
   const answer = await generateAnswer(
-    query,
+    translatedQuery, // Use translated query for consistency with context
     vectorResults,
     {
       herbs: uniqueHerbs,
       relations: relations,
     },
-    apiKey
+    apiKey,
+    language // Pass original language preference
   );
   console.log(`Answer generated: ${answer.substring(0, 100)}...`);
 

@@ -74,7 +74,7 @@ Return format (no markdown, no code blocks):
     const data = await response.json();
     const content = data.choices[0].message.content.trim();
     const metadata = parseJSONResponse(content);
-    
+
     return {
       title: metadata.title || "",
       authors: metadata.authors || "",
@@ -193,7 +193,7 @@ Return format (no markdown, no code blocks):
       };
     } catch (parseError) {
       console.error(`JSON parse error for chunk ${chunk.id}:`, parseError);
-      
+
       // Try manual extraction as fallback
       return extractGraphManually(chunk, content);
     }
@@ -213,14 +213,14 @@ function extractGraphManually(
   try {
     const entities: Entity[] = [];
     const relations: Relation[] = [];
-    
+
     // More flexible entity extraction patterns
     // Pattern 1: Standard format
     const entityPattern1 = /["']name["']\s*:\s*["']([^"']+)["']\s*,\s*["']type["']\s*:\s*["']([^"']+)["']/g;
     for (const match of content.matchAll(entityPattern1)) {
       entities.push({ name: match[1], type: match[2] });
     }
-    
+
     // Pattern 2: Flexible with optional spaces and quotes
     const entityPattern2 = /\{[^}]*["']?name["']?\s*:\s*["']([^"',}]+)["'][^}]*["']?type["']?\s*:\s*["']([^"',}]+)["'][^}]*\}/g;
     for (const match of content.matchAll(entityPattern2)) {
@@ -228,31 +228,31 @@ function extractGraphManually(
         entities.push({ name: match[1].trim(), type: match[2].trim() });
       }
     }
-    
+
     // More flexible relation extraction patterns
     // Pattern 1: Standard format
     const relationPattern1 = /["']source["']\s*:\s*["']([^"']+)["']\s*,\s*["']relation["']\s*:\s*["']([^"']+)["']\s*,\s*["']target["']\s*:\s*["']([^"']+)["']/g;
     for (const match of content.matchAll(relationPattern1)) {
       relations.push({ source: match[1], relation: match[2], target: match[3] });
     }
-    
+
     // Pattern 2: Flexible format
     const relationPattern2 = /\{[^}]*["']?source["']?\s*:\s*["']([^"',}]+)["'][^}]*["']?relation["']?\s*:\s*["']([^"',}]+)["'][^}]*["']?target["']?\s*:\s*["']([^"',}]+)["'][^}]*\}/g;
     for (const match of content.matchAll(relationPattern2)) {
-      const rel = { 
-        source: match[1].trim(), 
-        relation: match[2].trim(), 
-        target: match[3].trim() 
+      const rel = {
+        source: match[1].trim(),
+        relation: match[2].trim(),
+        target: match[3].trim()
       };
       if (!relations.some(r => r.source === rel.source && r.relation === rel.relation && r.target === rel.target)) {
         relations.push(rel);
       }
     }
-    
+
     // Filter and limit
     const filteredEntities = entities.filter(filterEntity).slice(0, 15);
     const filteredRelations = filterRelationsByEntities(relations, filteredEntities);
-    
+
     if (filteredEntities.length > 0 || filteredRelations.length > 0) {
       return {
         chunkId: chunk.id,
@@ -260,7 +260,7 @@ function extractGraphManually(
         relations: filteredRelations,
       };
     }
-    
+
     return null;
   } catch (error) {
     console.error(`Fallback extraction failed for chunk ${chunk.id}`);
@@ -277,19 +277,19 @@ export async function extractGraphsInBatches(
   batchSize: number = 5
 ): Promise<GraphExtractionResult[]> {
   const graphs: GraphExtractionResult[] = [];
-  
+
   for (let i = 0; i < chunks.length; i += batchSize) {
     const batch = chunks.slice(i, i + batchSize);
-    
+
     // Process batch in parallel
     const batchPromises = batch.map(chunk => extractGraphFromChunk(chunk, apiKey));
     const batchResults = await Promise.all(batchPromises);
-    
+
     // Filter out null results
     const successfulResults = batchResults.filter(result => result !== null) as GraphExtractionResult[];
     graphs.push(...successfulResults);
   }
-  
+
   return graphs;
 }
 
@@ -365,7 +365,55 @@ JSON only:`,
 }
 
 /**
+ * Translate user query to English using Mistral
+ * Enforces strict literal translation.
+ */
+export async function translateQueryToEnglish(
+  query: string,
+  apiKey: string
+): Promise<string> {
+  try {
+    const response = await fetch(MISTRAL_API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: MISTRAL_MODEL,
+        messages: [
+          {
+            role: "user",
+            content: `Translate the following query into English strictly. 
+            If it is already in English, return it exactly as is.
+            Do not add any explanation, context, or extra words. 
+            Just return the translated text.
+            
+            Query: "${query}"`,
+          },
+        ],
+        temperature: 0.0, // Strict deterministic output
+        max_tokens: 200,
+      }),
+    });
+
+    if (!response.ok) {
+      // Fallback: return original query if translation fails
+      console.error(`Translation API error: ${response.status}`);
+      return query;
+    }
+
+    const data = await response.json();
+    return data.choices[0]?.message?.content?.trim() || query;
+  } catch (error) {
+    console.error("Error translating query:", error);
+    return query; // Fallback
+  }
+}
+
+/**
  * Generate answer from query using hybrid search context (vector + graph)
+ * OPTIMIZED: Prioritas pada herbs yang muncul di kedua context, jawaban lebih fokus
  */
 export async function generateAnswer(
   query: string,
@@ -374,18 +422,47 @@ export async function generateAnswer(
     herbs: Array<{ name: string }>;
     relations: Array<{ source: { name: string }; relation: string; target: { name: string; type: string } }>;
   },
-  apiKey: string
+  apiKey: string,
+  targetLanguage: 'id' | 'en' = 'id' // Default to ID if not specified
 ): Promise<string> {
   try {
-    // Construct context from vector chunks
+    // Construct context from vector chunks - extract herb mentions for cross-referencing
     const chunksText = vectorContext
-      .map((chunk, i) => `[Chunk ${i + 1}]: ${chunk.text.substring(0, 500)}`)
+      .map((chunk, i) => `[Chunk ${i + 1}]: ${chunk.text.substring(0, 600)}`)
       .join("\n\n");
 
-    // Construct context from knowledge graph
-    const herbsList = graphContext.herbs.map((h) => h.name).join(", ");
-    const relationsList = graphContext.relations
-      .slice(0, 15)
+    // Extract herb names mentioned in vector context for cross-referencing
+    const vectorText = vectorContext.map(c => c.text.toLowerCase()).join(" ");
+
+    // Separate herbs into two categories: confirmed (in vector) and graph-only
+    const graphHerbNames = graphContext.herbs.map((h) => h.name);
+    const confirmedHerbs: string[] = [];
+    const graphOnlyHerbs: string[] = [];
+
+    graphHerbNames.forEach(herbName => {
+      const herbLower = herbName.toLowerCase();
+      // Check if herb is mentioned in vector context
+      if (vectorText.includes(herbLower) ||
+        vectorText.includes(herbLower.split(' ')[0])) {
+        confirmedHerbs.push(herbName);
+      } else {
+        graphOnlyHerbs.push(herbName);
+      }
+    });
+
+    // Filter relations to prioritize those involving confirmed herbs
+    const prioritizedRelations = graphContext.relations
+      .filter(r => confirmedHerbs.some(h =>
+        r.source.name.toLowerCase().includes(h.toLowerCase()) ||
+        h.toLowerCase().includes(r.source.name.toLowerCase())
+      ))
+      .slice(0, 10);
+
+    const additionalRelations = graphContext.relations
+      .filter(r => !prioritizedRelations.includes(r))
+      .slice(0, 5);
+
+    const relationsList = [...prioritizedRelations, ...additionalRelations]
       .map((r) => `- ${r.source.name} ${r.relation} ${r.target.name} (${r.target.type})`)
       .join("\n");
 
@@ -400,6 +477,18 @@ export async function generateAnswer(
       .map((j, i) => `[${i + 1}] ${j.title}. ${j.author}. ${j.year}.`)
       .join("\n");
 
+    // Build optimized prompt
+    const confirmedHerbsList = confirmedHerbs.length > 0
+      ? confirmedHerbs.join(", ")
+      : "None found";
+    const additionalHerbsList = graphOnlyHerbs.length > 0
+      ? graphOnlyHerbs.slice(0, 3).join(", ")
+      : "";
+
+    const languageInstruction = targetLanguage === 'en'
+      ? "ANSWER IN ENGLISH."
+      : "ANSWER IN INDONESIAN (BAHASA INDONESIA).";
+
     const response = await fetch(MISTRAL_API_URL, {
       method: "POST",
       headers: {
@@ -411,34 +500,38 @@ export async function generateAnswer(
         messages: [
           {
             role: "user",
-            content: `You are a herbal medicine expert. Answer the question using ONLY the provided context from research papers and knowledge graph.
+            content: `You are a herbal medicine expert. Answer the question using ONLY the provided context.
+            
+${languageInstruction}
 
 Question: ${query}
 
-VECTOR CONTEXT (Research Paper Excerpts):
+=== RESEARCH PAPER EVIDENCE ===
 ${chunksText}
 
-KNOWLEDGE GRAPH CONTEXT:
-Relevant Herbs: ${herbsList || "None found"}
+=== KNOWLEDGE GRAPH DATA ===
+PRIMARY HERBS (confirmed in research papers): ${confirmedHerbsList}
+${additionalHerbsList ? `ADDITIONAL HERBS (from knowledge graph): ${additionalHerbsList}` : ""}
 
 Therapeutic Relations:
 ${relationsList || "No relations found"}
 
-INSTRUCTIONS:
-1. Answer the question directly and concisely
-2. Focus on herbal treatments and their therapeutic effects
-3. IMPORTANT: Mention ALL herbs listed in "Relevant Herbs" above, even if their direct relation to the question is unclear
-4. For each herb, explain its known effects or compounds if available in the context
-5. Include dosage or preparation methods if mentioned in context
-6. Keep answer to 5-10 sentences maximum
-7. If context is insufficient for some herbs, mention them anyway and note that more research may be needed
+=== ANSWER INSTRUCTIONS ===
+1. ${languageInstruction}
+2. PRIORITIZE herbs that appear in BOTH research papers AND knowledge graph (PRIMARY HERBS)
+3. For PRIMARY HERBS: Explain their therapeutic effects, mechanisms, or clinical findings from the research
+4. KEEP ANSWER CONCISE: Maximum 3-5 sentences in PARAGRAPH format
+5. Include specific compounds, dosages, or study results if mentioned
+6. For ADDITIONAL HERBS: Only briefly mention if directly relevant, otherwise skip
+7. DO NOT mention herbs without supporting evidence from the context
 8. DO NOT make up information not in the context
+9. IMPORTANT: Write in flowing PARAGRAPH format, NOT bullet points or numbered lists
 
-Answer:`,
+Provide a focused, evidence-based answer in paragraph form:`,
           },
         ],
-        temperature: 0.3,
-        max_tokens: 500,
+        temperature: 0.2,
+        max_tokens: 400,
       }),
     });
 
@@ -448,11 +541,6 @@ Answer:`,
 
     const data = await response.json();
     let answer = data.choices[0]?.message?.content?.trim() || "Unable to generate answer.";
-
-    // Append sources
-    if (sources.length > 0) {
-      answer += "\n\n**Sources:**\n" + sourcesText;
-    }
 
     return answer;
   } catch (error) {

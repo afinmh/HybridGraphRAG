@@ -3,7 +3,7 @@ import { hybridSearch } from "@/services/query.service";
 
 export async function POST(request: NextRequest) {
   try {
-    const { query, topK = 5 } = await request.json();
+    const { query, topK = 5, language = 'id' } = await request.json();
 
     if (!query || typeof query !== "string" || query.trim().length === 0) {
       return NextResponse.json(
@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Perform hybrid search
-    const results = await hybridSearch(query.trim(), topK);
+    const results = await hybridSearch(query.trim(), topK, language);
 
     return NextResponse.json({
       success: true,

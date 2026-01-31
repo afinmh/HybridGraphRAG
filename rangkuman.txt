@@ -1,0 +1,198 @@
+Pertanyaan 1:
+Hasil:
+ROUGE - Jawaban Saya vs Ahli
+rouge1: F1 = 0.3115
+rouge2: F1 = 0.0833
+rougeL: F1 = 0.1967
+
+ROUGE - Penelitian Terdahulu vs Ahli
+rouge1: F1 = 0.1435
+rouge2: F1 = 0.0255
+rougeL: F1 = 0.0844
+
+ROUGE - Vector vs Ahli
+rouge1: F1 = 0.2819
+rouge2: F1 = 0.0272
+rougeL: F1 = 0.1477
+
+ROUGE - Graph vs Ahli
+rouge1: F1 = 0.1769
+rouge2: F1 = 0.0552
+rougeL: F1 = 0.1361
+
+METEOR - Jawaban Saya vs Ahli: 0.1966
+METEOR - Penelitian Terdahulu vs Ahli: 0.1834
+METEOR - Vector vs Ahli: 0.2401
+METEOR - Graph vs Ahli: 0.1282
+
+Correctness RAGAS:
+Hybrid Graph RAG   : 0.7785
+Penelitian Lama    : 0.5451
+Vector Only        : 0.7006
+Graph Only         : 0.3933
+
+Pertanyaan 2:
+Hasil:
+ROUGE - Jawaban Saya vs Ahli
+rouge1: F1 = 0.4818
+rouge2: F1 = 0.3556
+rougeL: F1 = 0.3650
+
+ROUGE - Penelitian Terdahulu vs Ahli
+rouge1: F1 = 0.2159
+rouge2: F1 = 0.0460
+rougeL: F1 = 0.1477
+
+ROUGE - Vector vs Ahli
+rouge1: F1 = 0.1838
+rouge2: F1 = 0.0546
+rougeL: F1 = 0.1081
+
+ROUGE - Graph vs Ahli
+rouge1: F1 = 0.2293
+rouge2: F1 = 0.0774
+rougeL: F1 = 0.1274
+
+METEOR - Jawaban Saya vs Ahli: 0.4632
+METEOR - Penelitian Terdahulu vs Ahli: 0.1918
+METEOR - Vector vs Ahli: 0.2243
+METEOR - Graph vs Ahli: 0.1686
+
+Correctness RAGAS:
+Hybrid Graph RAG   : 0.6666
+Penelitian Lama    : 0.4266
+Vector Only        : 0.5134
+Graph Only         : 0.6031
+
+
+Pertanyaan 3:
+Hasil:
+ROUGE - Jawaban Saya vs Ahli
+rouge1: F1 = 0.3218
+rouge2: F1 = 0.1395
+rougeL: F1 = 0.2069
+
+ROUGE - Penelitian Terdahulu vs Ahli
+rouge1: F1 = 0.2705
+rouge2: F1 = 0.0390
+rougeL: F1 = 0.1256
+
+ROUGE - Vector vs Ahli
+rouge1: F1 = 0.3697
+rouge2: F1 = 0.1340
+rougeL: F1 = 0.2180
+
+ROUGE - Graph vs Ahli
+rouge1: F1 = 0.2249
+rouge2: F1 = 0.0240
+rougeL: F1 = 0.1183
+
+METEOR - Jawaban Saya vs Ahli: 0.2454
+METEOR - Penelitian Terdahulu vs Ahli: 0.23
+METEOR - Vector vs Ahli: 0.2785
+METEOR - Graph vs Ahli: 0.1416
+
+Correctness RAGAS:
+Hybrid Graph RAG   : 0.6710
+Penelitian Lama    : 0.3554
+Vector Only        : 0.6148
+Graph Only         : 0.4468
+
+Pertanyaan 4:
+Hasil:
+ROUGE - Jawaban Saya vs Ahli
+rouge1: F1 = 0.2486
+rouge2: F1 = 0.0656
+rougeL: F1 = 0.1405
+
+ROUGE - Penelitian Terdahulu vs Ahli
+rouge1: F1 = 0.2167
+rouge2: F1 = 0.0339
+rougeL: F1 = 0.1167
+
+ROUGE - Vector vs Ahli
+rouge1: F1 = 0.1946
+rouge2: F1 = 0.0109
+rougeL: F1 = 0.1081
+
+ROUGE - Graph vs Ahli
+rouge1: F1 = 0.2000
+rouge2: F1 = 0.0225
+rougeL: F1 = 0.1111
+
+METEOR - Jawaban Saya vs Ahli: 0.2082
+METEOR - Penelitian Terdahulu vs Ahli: 0.1769
+METEOR - Vector vs Ahli: 0.1408
+METEOR - Graph vs Ahli: 0.1356
+
+Correctness:
+Hybrid Graph RAG   : 0.5856
+Penelitian Lama    : 0.4502
+Vector Only        : 0.4001
+Graph Only         : 0.4504
+
+Pertanyaan 5:
+Hasil:
+ROUGE - Jawaban Saya vs Ahli
+rouge1: F1 = 0.2394
+rouge2: F1 = 0.0571
+rougeL: F1 = 0.1690
+
+ROUGE - Penelitian Terdahulu vs Ahli
+rouge1: F1 = 0.1628
+rouge2: F1 = 0.0235
+rougeL: F1 = 0.0930
+
+ROUGE - Vector vs Ahli
+rouge1: F1 = 0.2317
+rouge2: F1 = 0.0370
+rougeL: F1 = 0.1220
+
+ROUGE - Graph vs Ahli
+rouge1: F1 = 0.1677
+rouge2: F1 = 0.0131
+rougeL: F1 = 0.0903
+
+METEOR - Jawaban Saya vs Ahli: 0.2284
+METEOR - Penelitian Terdahulu vs Ahli: 0.1242
+METEOR - Vector vs Ahli: 0.1835
+METEOR - Graph vs Ahli: 0.1878
+
+Correctness:
+Hybrid Graph RAG   : 0.5752
+Penelitian Lama    : 0.5151
+Vector Only        : 0.4826
+Graph Only         : 0.3574
+
+
+Pertanyaan 6:
+Hasil:
+rouge1: F1 = 0.2405
+rouge2: F1 = 0.0769
+rougeL: F1 = 0.1519
+
+ROUGE - Penelitian Terdahulu vs Ahli
+rouge1: F1 = 0.2045
+rouge2: F1 = 0.0460
+rougeL: F1 = 0.1250
+
+ROUGE - Vector vs Ahli
+rouge1: F1 = 0.2727
+rouge2: F1 = 0.0556
+rougeL: F1 = 0.1636
+
+ROUGE - Graph vs Ahli
+rouge1: F1 = 0.2222
+rouge2: F1 = 0.0174
+rougeL: F1 = 0.1026
+
+METEOR - Jawaban Saya vs Ahli: 0.2924
+METEOR - Penelitian Terdahulu vs Ahli: 0.2382
+METEOR - Vector vs Ahli: 0.2109
+METEOR - Graph vs Ahli: 0.1438
+
+Correctness:
+Hybrid Graph RAG   : 0.6642
+Penelitian Lama    : 0.5744
+Vector Only        : 0.4054
+Graph Only         : 0.5092

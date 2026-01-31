@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -52,11 +53,39 @@ interface SearchResults {
 }
 
 export default function QueryPage() {
+  const searchParams = useSearchParams();
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<SearchResults | null>(null);
   const [error, setError] = useState("");
   const [copiedContext, setCopiedContext] = useState(false);
+
+  useEffect(() => {
+    const q = searchParams.get("q");
+    const mode = searchParams.get("mode");
+
+    if (mode === "cached") {
+      try {
+        const cached = localStorage.getItem("latest_query_detail");
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          setResults(parsed);
+          if (parsed.query) setQuery(parsed.query);
+          return; // Skip search
+        }
+      } catch (e) {
+        console.error("Failed to load cached results:", e);
+      }
+    }
+
+    if (q) {
+      setQuery(q);
+      // Avoid double triggering if already loading or results exist matching query
+      if (!loading && (!results || results.query !== q)) {
+        handleSearch(q);
+      }
+    }
+  }, [searchParams]);
 
   // Generate context string for RAGAS evaluation
   const generateContextString = (): string => {
@@ -516,56 +545,56 @@ export default function QueryPage() {
               {(results.graphResults.herbs.length > 0 ||
                 results.graphResults.compounds.length > 0 ||
                 results.graphResults.effects.length > 0) && (
-                <div>
-                  <h3 className="font-semibold text-amber-800 mb-3 flex items-center gap-2">
-                    <Leaf className="h-4 w-4" />
-                    Knowledge Graph Relations Summary
-                  </h3>
-                  <div className="p-4 bg-white/80 border border-amber-200 rounded-lg">
-                    <p className="text-sm text-gray-700 leading-relaxed">
-                      {results.graphResults.herbs.length > 0 && (
-                        <>
-                          The knowledge graph identified the following relevant herbs:{" "}
-                          <span className="font-medium text-green-700">
-                            {results.graphResults.herbs.map((h) => h.name).join(", ")}
-                          </span>
-                          .{" "}
-                        </>
-                      )}
-                      {results.graphResults.compounds.length > 0 && (
-                        <>
-                          These herbs contain compounds with the following relationships:{" "}
-                          <span className="font-medium text-blue-700">
-                            {results.graphResults.compounds
-                              .slice(0, 10)
-                              .map(
-                                (rel) =>
-                                  `${rel.source.name} ${rel.relation} ${rel.target.name}`
-                              )
-                              .join("; ")}
-                          </span>
-                          .{" "}
-                        </>
-                      )}
-                      {results.graphResults.effects.length > 0 && (
-                        <>
-                          The identified effects include:{" "}
-                          <span className="font-medium text-purple-700">
-                            {results.graphResults.effects
-                              .slice(0, 10)
-                              .map(
-                                (rel) =>
-                                  `${rel.source.name} ${rel.relation} ${rel.target.name}`
-                              )
-                              .join("; ")}
-                          </span>
-                          .
-                        </>
-                      )}
-                    </p>
+                  <div>
+                    <h3 className="font-semibold text-amber-800 mb-3 flex items-center gap-2">
+                      <Leaf className="h-4 w-4" />
+                      Knowledge Graph Relations Summary
+                    </h3>
+                    <div className="p-4 bg-white/80 border border-amber-200 rounded-lg">
+                      <p className="text-sm text-gray-700 leading-relaxed">
+                        {results.graphResults.herbs.length > 0 && (
+                          <>
+                            The knowledge graph identified the following relevant herbs:{" "}
+                            <span className="font-medium text-green-700">
+                              {results.graphResults.herbs.map((h) => h.name).join(", ")}
+                            </span>
+                            .{" "}
+                          </>
+                        )}
+                        {results.graphResults.compounds.length > 0 && (
+                          <>
+                            These herbs contain compounds with the following relationships:{" "}
+                            <span className="font-medium text-blue-700">
+                              {results.graphResults.compounds
+                                .slice(0, 10)
+                                .map(
+                                  (rel) =>
+                                    `${rel.source.name} ${rel.relation} ${rel.target.name}`
+                                )
+                                .join("; ")}
+                            </span>
+                            .{" "}
+                          </>
+                        )}
+                        {results.graphResults.effects.length > 0 && (
+                          <>
+                            The identified effects include:{" "}
+                            <span className="font-medium text-purple-700">
+                              {results.graphResults.effects
+                                .slice(0, 10)
+                                .map(
+                                  (rel) =>
+                                    `${rel.source.name} ${rel.relation} ${rel.target.name}`
+                                )
+                                .join("; ")}
+                            </span>
+                            .
+                          </>
+                        )}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
             </CardContent>
           </Card>
         </div>
