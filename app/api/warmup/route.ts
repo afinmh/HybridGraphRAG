@@ -52,8 +52,3 @@ export async function GET() {
         );
     }
 }
-
-// Export the pipeline for reuse
-export function getWarmPipeline() {
-    return embeddingPipeline;
-}
