@@ -11,20 +11,29 @@ let embeddingPipeline: any = null;
 export async function GET() {
     try {
         if (!isWarmedUp) {
-            console.log("Warming up embedding model...");
+            console.log("🔄 Warming up embedding model (Xenova/all-MiniLM-L6-v2)...");
 
-            // Initialize the embedding pipeline
-            embeddingPipeline = await pipeline(
-                "feature-extraction",
-                "Xenova/all-MiniLM-L6-v2",
-                { quantized: true }
-            );
+            try {
+                // Initialize the embedding pipeline (same pattern as Si-Mbah - no options)
+                embeddingPipeline = await pipeline(
+                    "feature-extraction",
+                    "Xenova/all-MiniLM-L6-v2"
+                );
+                console.log("✅ Embedder loaded!");
+            } catch (e) {
+                console.error("❌ Failed loading embedder, trying fallback...", e);
+                embeddingPipeline = await pipeline(
+                    "feature-extraction",
+                    "sentence-transformers/all-MiniLM-L6-v2"
+                );
+                console.log("✅ Fallback embedder loaded!");
+            }
 
             // Test the pipeline with a simple text
             await embeddingPipeline("test", { pooling: "mean", normalize: true });
 
             isWarmedUp = true;
-            console.log("Embedding model warmed up successfully!");
+            console.log("✅ Embedding model warmed up successfully!");
         }
 
         return NextResponse.json({
@@ -33,7 +42,7 @@ export async function GET() {
             model: "Xenova/all-MiniLM-L6-v2",
         });
     } catch (error) {
-        console.error("Warmup error:", error);
+        console.error("💥 Warmup error:", error);
         return NextResponse.json(
             {
                 status: "error",

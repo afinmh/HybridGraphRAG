@@ -19,11 +19,18 @@ let embeddingPipeline: any = null;
 
 async function getEmbeddingPipeline() {
   if (!embeddingPipeline) {
-    embeddingPipeline = await pipeline(
-      "feature-extraction",
-      "Xenova/all-MiniLM-L6-v2",
-      { quantized: true } // Use quantized for faster loading on Vercel
-    );
+    try {
+      embeddingPipeline = await pipeline(
+        "feature-extraction",
+        "Xenova/all-MiniLM-L6-v2"
+      );
+    } catch (e) {
+      console.error("Failed loading embedder, trying fallback...", e);
+      embeddingPipeline = await pipeline(
+        "feature-extraction",
+        "sentence-transformers/all-MiniLM-L6-v2"
+      );
+    }
   }
   return embeddingPipeline;
 }
