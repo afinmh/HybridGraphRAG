@@ -61,18 +61,19 @@ export function Footer() {
             <h4 className="font-bold text-lg mb-6 text-gray-900 dark:text-white">Navigasi</h4>
             <ul className="space-y-4">
               {[
-                { label: "Beranda", href: "#home" },
-                { label: "Fitur", href: "#features" },
-                { label: "Tentang", href: "#about" },
-                { label: "Teknologi", href: "#technology" },
-                { label: "Cari Herbal", href: "/query" },
-                { label: "Upload Jurnal", href: "/upload" }
+                { label: "Beranda", href: "/" },
+                { label: "Tentang", href: "/#about" },
+                { label: "Fitur", href: "/#features" },
+                { label: "Dokumen", href: "/document" },
+                { label: "Knowledge Graph", href: "/graph" },
+                { label: "AI Summary", href: "/analysis" },
               ].map((link, idx) => (
                 <li key={idx}>
                   <Link
                     href={link.href}
-                    className="text-gray-600 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 transition-colors text-sm font-medium hover:translate-x-1 inline-block"
+                    className="group flex items-center text-gray-600 dark:text-gray-400 hover:text-emerald-500 dark:hover:text-emerald-400 transition-all duration-300 transform hover:translate-x-2"
                   >
+                    <span className="w-0 group-hover:w-2 h-0.5 bg-emerald-500 mr-0 group-hover:mr-2 transition-all duration-300 rounded-full opacity-0 group-hover:opacity-100"></span>
                     {link.label}
                   </Link>
                 </li>

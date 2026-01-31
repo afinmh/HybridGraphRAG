@@ -491,7 +491,7 @@ export function ChatWidget() {
 
                             {/* Messages */}
                             <div
-                                className="relative flex-1 overflow-y-auto p-4 space-y-4 [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-emerald-500/20 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-emerald-500/40 transition-all cursor-auto"
+                                className="relative flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar transition-all cursor-auto"
                                 ref={scrollRef}
                                 onPointerDown={(e) => e.stopPropagation()} // Allow text selection / scrolling without drag
                             >

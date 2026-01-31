@@ -60,24 +60,27 @@ export function Navbar() {
           {/* Tengah: Menu */}
           <div className="hidden md:flex flex-1 justify-center items-center gap-2">
             <Button variant="ghost" asChild className="text-sm text-white/80 hover:text-emerald-300 hover:bg-white/5 transition-all duration-200 font-medium px-3 rounded-xl">
-              <a href="#about">Tentang</a>
+              <Link href="/#about">Tentang</Link>
             </Button>
             <Button variant="ghost" asChild className="text-sm text-white/80 hover:text-emerald-300 hover:bg-white/5 transition-all duration-200 font-medium px-3 rounded-xl">
-              <a href="#features">Fitur</a>
+              <Link href="/#features">Fitur</Link>
             </Button>
             <Button variant="ghost" asChild className="text-sm text-white/80 hover:text-emerald-300 hover:bg-white/5 transition-all duration-200 font-medium px-3 rounded-xl">
-              <a href="#technology">Teknologi</a>
+              <Link href="/document">Dokumen</Link>
+            </Button>
+            <Button variant="ghost" asChild className="text-sm text-white/80 hover:text-emerald-300 hover:bg-white/5 transition-all duration-200 font-medium px-3 rounded-xl">
+              <Link href="/graph">Graph</Link>
             </Button>
           </div>
-          {/* Kanan: Tombol Cari Herbal */}
+          {/* Kanan: Tombol Summary */}
           <div className="flex flex-1 justify-end items-center">
             <Button
               asChild
               className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg shadow-green-500/25 hover:shadow-green-500/40 transition-all duration-300 hover:scale-105 font-medium px-5 py-2 text-sm"
             >
-              <Link href="/query">
+              <Link href="/analysis">
                 <Sparkles className="w-4 h-4 mr-2" />
-                Cari Herbal
+                Summary
               </Link>
             </Button>
           </div>

@@ -102,6 +102,7 @@ export function Features() {
 
   return (
     <section
+      id="features"
       className="relative py-12 lg:py-20 overflow-hidden bg-cover bg-center bg-no-repeat"
       style={{ backgroundImage: 'url("/home/feature2.webp")' }}
       ref={containerRef}
