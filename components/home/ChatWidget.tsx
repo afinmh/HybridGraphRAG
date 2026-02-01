@@ -7,6 +7,7 @@ import { motion, AnimatePresence, useDragControls, useMotionValue, useTransform,
 import ReactMarkdown from "react-markdown";
 import Image from "next/image";
 import Link from "next/link";
+import { initEmbedding, generateEmbedding, isEmbeddingReady, isEmbeddingLoading } from "@/services/client-embedding.service";
 
 interface Source {
     title: string;
@@ -143,26 +144,38 @@ export function ChatWidget() {
     // System Readiness State
     const [isSystemReady, setIsSystemReady] = useState(false);
     const [warmupError, setWarmupError] = useState<string | null>(null);
+    const [loadingStatus, setLoadingStatus] = useState<string>("Initializing...");
 
-    // Real Model Warmup via API
+    // Initialize client-side embedding when widget opens
     useEffect(() => {
         if (isOpen && !isSystemReady) {
             const warmupSystem = async () => {
                 try {
                     setWarmupError(null);
+                    setLoadingStatus("Loading AI model...");
+
+                    // Initialize embedding model in browser
+                    const embeddingReady = await initEmbedding();
+
+                    if (!embeddingReady) {
+                        setWarmupError("Failed to load embedding model");
+                        return;
+                    }
+
+                    setLoadingStatus("Checking API...");
+
+                    // Check API readiness
                     const response = await fetch("/api/warmup");
                     const data = await response.json();
 
                     if (data.status === "ready") {
                         setIsSystemReady(true);
                     } else {
-                        setWarmupError(data.message || "System not ready");
+                        setWarmupError(data.message || "API not ready");
                     }
                 } catch (error) {
                     console.error("Warmup failed:", error);
                     setWarmupError("Failed to initialize AI system");
-                    // Still allow usage after error - will try again on query
-                    setTimeout(() => setIsSystemReady(true), 5000);
                 }
             };
 
@@ -321,10 +334,19 @@ export function ChatWidget() {
         setIsLoading(true);
 
         try {
-            const response = await fetch("/api/query", {
+            // Generate embedding on client-side
+            const embedding = await generateEmbedding(userMsg.content);
+
+            // Send query with pre-computed embedding
+            const response = await fetch("/api/query-with-embedding", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ query: userMsg.content, topK: 5, language }),
+                body: JSON.stringify({
+                    query: userMsg.content,
+                    embedding,
+                    topK: 5,
+                    language
+                }),
             });
 
             if (!response.ok) throw new Error("Failed to fetch");
@@ -364,6 +386,7 @@ export function ChatWidget() {
             };
             setMessages(prev => [...prev, botMsg]);
         } catch (error) {
+            console.error("Query error:", error);
             setMessages(prev => [...prev, {
                 id: (Date.now() + 1).toString(),
                 role: 'assistant',
@@ -485,7 +508,7 @@ export function ChatWidget() {
                                     <div>
                                         <h3 className="font-bold text-sm text-white tracking-wide font-mono">HERLIST</h3>
                                         <p className={`text-[10px] font-mono tracking-wider ${isSystemReady ? 'text-emerald-400/80' : warmupError ? 'text-red-400/80' : 'text-yellow-400/80 animate-pulse'}`}>
-                                            {isSystemReady ? 'SYSTEM ONLINE' : warmupError ? 'SYSTEM ERROR' : 'LOADING AI MODEL...'}
+                                            {isSystemReady ? 'SYSTEM ONLINE' : warmupError ? 'ERROR' : loadingStatus.toUpperCase()}
                                         </p>
                                     </div>
                                 </div>

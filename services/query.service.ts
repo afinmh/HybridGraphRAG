@@ -15,9 +15,11 @@ import {
   type GraphRelation,
 } from "@/repositories/search.repository";
 
-// Configure transformers.js for serverless environment
+// Configure transformers.js for Edge/Serverless environment
 env.useBrowserCache = false;
 env.allowLocalModels = false;
+env.useCustomCache = false;
+env.cacheDir = undefined;
 
 let embeddingPipeline: any = null;
 

@@ -1,35 +1,17 @@
-import { NextRequest, NextResponse } from "next/server";
-import { hybridSearch } from "@/services/query.service";
+/**
+ * Legacy Query API - redirects to query-with-embedding
+ * This route is kept for backward compatibility but should not be used
+ * as embedding is now done client-side
+ */
 
-// Use Edge Runtime for WebAssembly/ONNX compatibility
-export const runtime = 'edge';
+import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
-  try {
-    const { query, topK = 5, language = 'id' } = await request.json();
-
-    if (!query || typeof query !== "string" || query.trim().length === 0) {
-      return NextResponse.json(
-        { error: "Query is required and must be a non-empty string" },
-        { status: 400 }
-      );
-    }
-
-    // Perform hybrid search
-    const results = await hybridSearch(query.trim(), topK, language);
-
-    return NextResponse.json({
-      success: true,
-      ...results,
-    });
-  } catch (error) {
-    console.error("Query API error:", error);
-    return NextResponse.json(
-      {
-        error: "Failed to process query",
-        details: error instanceof Error ? error.message : "Unknown error",
-      },
-      { status: 500 }
-    );
-  }
+  return NextResponse.json(
+    {
+      error: "This endpoint is deprecated. Please use /api/query-with-embedding with client-side embedding.",
+      hint: "Generate embedding on client using @xenova/transformers and send it with your query."
+    },
+    { status: 410 } // Gone
+  );
 }

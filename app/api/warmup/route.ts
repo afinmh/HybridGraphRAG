@@ -1,55 +1,32 @@
 import { NextResponse } from "next/server";
-import { pipeline, env } from "@xenova/transformers";
-
-// Force WASM backend for Edge compatibility
-env.backends.onnx.wasm.numThreads = 1;
-
-let isWarmedUp = false;
-let embeddingPipeline: any = null;
-
-// Use Edge Runtime which supports WebAssembly
-export const runtime = 'edge';
 
 /**
- * Warmup endpoint - initializes the embedding model
- * Returns the current status of the system
+ * Warmup endpoint - for client-side embedding architecture
+ * The actual embedding is done in the browser, so this just confirms API is ready
  */
 export async function GET() {
     try {
-        if (!isWarmedUp) {
-            console.log("🔄 Warming up embedding model (Xenova/all-MiniLM-L6-v2)...");
+        // Check if Mistral API key is configured
+        const hasMistralKey = !!process.env.MISTRAL_API_KEY;
 
-            try {
-                // Initialize the embedding pipeline with quantized model
-                embeddingPipeline = await pipeline(
-                    "feature-extraction",
-                    "Xenova/all-MiniLM-L6-v2",
-                    {
-                        quantized: true,
-                    }
-                );
-                console.log("✅ Embedder loaded!");
-            } catch (e) {
-                console.error("❌ Failed loading embedder, trying fallback...", e);
-                embeddingPipeline = await pipeline(
-                    "feature-extraction",
-                    "sentence-transformers/all-MiniLM-L6-v2",
-                    { quantized: true }
-                );
-                console.log("✅ Fallback embedder loaded!");
-            }
+        // Check if Supabase is configured
+        const hasSupabase = !!process.env.NEXT_PUBLIC_SUPABASE_URL && !!process.env.SUPABASE_SERVICE_KEY;
 
-            // Test the pipeline with a simple text
-            await embeddingPipeline("test", { pooling: "mean", normalize: true });
-
-            isWarmedUp = true;
-            console.log("✅ Embedding model warmed up successfully!");
+        if (!hasMistralKey || !hasSupabase) {
+            return NextResponse.json({
+                status: "error",
+                message: "Missing required environment variables",
+                details: {
+                    mistral: hasMistralKey,
+                    supabase: hasSupabase,
+                }
+            }, { status: 500 });
         }
 
         return NextResponse.json({
             status: "ready",
-            message: "System is online and ready",
-            model: "Xenova/all-MiniLM-L6-v2",
+            message: "API is ready. Embedding runs on client-side.",
+            architecture: "client-side-embedding",
         });
     } catch (error) {
         console.error("💥 Warmup error:", error);
