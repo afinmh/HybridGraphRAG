@@ -12,21 +12,23 @@ export async function GET() {
         // Check if Supabase is configured
         const hasSupabase = !!process.env.NEXT_PUBLIC_SUPABASE_URL && !!process.env.SUPABASE_SERVICE_KEY;
 
+        // Log status for debugging
+        console.log("Warmup check - Mistral:", hasMistralKey, "Supabase:", hasSupabase);
+
+        // Return ready even if some configs are missing (for development)
+        // In production, you may want to return error
         if (!hasMistralKey || !hasSupabase) {
-            return NextResponse.json({
-                status: "error",
-                message: "Missing required environment variables",
-                details: {
-                    mistral: hasMistralKey,
-                    supabase: hasSupabase,
-                }
-            }, { status: 500 });
+            console.warn("⚠️ Missing some environment variables, but continuing...");
         }
 
         return NextResponse.json({
             status: "ready",
             message: "API is ready. Embedding runs on client-side.",
             architecture: "client-side-embedding",
+            config: {
+                mistral: hasMistralKey,
+                supabase: hasSupabase,
+            }
         });
     } catch (error) {
         console.error("💥 Warmup error:", error);

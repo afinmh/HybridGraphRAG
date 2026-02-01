@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { motion } from "framer-motion";
-import { Radar, BarChart3, ChevronLeft, Table as TableIcon, Activity } from "lucide-react";
+import { useState, useEffect } from "react";
+import { motion, useSpring, useTransform } from "framer-motion";
+import { Radar, BarChart3, ChevronLeft, Table as TableIcon, Activity, Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -71,13 +71,62 @@ const performanceData = [
     }
 ];
 
-const METRICS = ['correctness', 'rouge1', 'rougeL', 'meteor', 'rouge2']; // Reordered for visual balance
+const METRICS = ['correctness', 'rouge1', 'rougeL', 'meteor', 'rouge2'];
 const METHODS = [
     { key: 'hybrid', name: 'Hybrid Graph', color: 'bg-emerald-500', stroke: '#10b981', fill: 'rgba(16, 185, 129, 0.2)' },
     { key: 'legacy', name: 'Legacy', color: 'bg-gray-500', stroke: '#6b7280', fill: 'rgba(107, 114, 128, 0.2)' },
     { key: 'vector', name: 'Vector Only', color: 'bg-blue-500', stroke: '#3b82f6', fill: 'rgba(59, 130, 246, 0.2)' },
     { key: 'graph', name: 'Graph Only', color: 'bg-indigo-500', stroke: '#6366f1', fill: 'rgba(99, 102, 241, 0.2)' },
 ];
+
+// --- ANIMATED NUMBER COMPONENT ---
+function AnimatedNumber({ value, decimals = 3, duration = 1.5, className = "" }: {
+    value: number;
+    decimals?: number;
+    duration?: number;
+    className?: string;
+}) {
+    const spring = useSpring(0, {
+        stiffness: 50,
+        damping: 20,
+        duration: duration * 1000
+    });
+    const display = useTransform(spring, (v) => v.toFixed(decimals));
+    const [displayValue, setDisplayValue] = useState("0.000");
+
+    useEffect(() => {
+        spring.set(value);
+    }, [spring, value]);
+
+    useEffect(() => {
+        const unsubscribe = display.on("change", (v) => setDisplayValue(v));
+        return unsubscribe;
+    }, [display]);
+
+    return <span className={className}>{displayValue}</span>;
+}
+
+// --- ANIMATED PROGRESS BAR ---
+function AnimatedProgressBar({ value, maxValue = 0.5, delay = 0 }: {
+    value: number;
+    maxValue?: number;
+    delay?: number;
+}) {
+    return (
+        <div className="flex-1 h-1.5 bg-white/10 rounded-full overflow-hidden">
+            <motion.div
+                className="h-full bg-gradient-to-r from-blue-500 to-emerald-500 rounded-full"
+                initial={{ width: 0 }}
+                animate={{ width: `${Math.min((value / maxValue) * 100, 100)}%` }}
+                transition={{
+                    duration: 1.2,
+                    delay: delay,
+                    ease: [0.16, 1, 0.3, 1] // easeOutExpo
+                }}
+            />
+        </div>
+    );
+}
 
 function calculateRadarPoints(scores: any, size: number) {
     const angleStep = (Math.PI * 2) / METRICS.length;
@@ -87,7 +136,7 @@ function calculateRadarPoints(scores: any, size: number) {
     return METRICS.map((key, i) => {
         const val = scores[key] || 0;
         const angle = i * angleStep - Math.PI / 2;
-        const r = val * radius * 0.85; // slightly smaller to keep labels in check
+        const r = val * radius * 0.85;
         const x = center + r * Math.cos(angle);
         const y = center + r * Math.sin(angle);
         return { x, y };
@@ -163,6 +212,8 @@ function RadarChart({ scores, size = 300, showMethods = ['hybrid'] }: { scores: 
 export default function SummaryPage() {
     const [selectedQuestion, setSelectedQuestion] = useState(1);
     const [visibleMethods, setVisibleMethods] = useState(['hybrid', 'vector']);
+    // Scenario Analysis visible methods (for bar chart and table)
+    const [scenarioMethods, setScenarioMethods] = useState(['hybrid', 'legacy', 'vector', 'graph']);
 
     const currentQData = performanceData.find(d => d.id === selectedQuestion) || performanceData[0];
 
@@ -180,6 +231,18 @@ export default function SummaryPage() {
         setVisibleMethods(prev =>
             prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]
         );
+    };
+
+    const toggleScenarioMethod = (key: string) => {
+        setScenarioMethods(prev => {
+            // Ensure at least one method is always visible
+            if (prev.includes(key) && prev.length > 1) {
+                return prev.filter(k => k !== key);
+            } else if (!prev.includes(key)) {
+                return [...prev, key];
+            }
+            return prev;
+        });
     };
 
     return (
@@ -251,9 +314,12 @@ export default function SummaryPage() {
                             <div className="absolute top-0 right-0 p-32 bg-emerald-500/10 blur-[80px] rounded-full pointer-events-none" />
                             <h3 className="text-emerald-400 font-mono text-xs uppercase tracking-wider mb-2 z-10">Champion Metric</h3>
                             <div className="z-10">
-                                <span className="text-6xl font-bold text-white tracking-tighter">
-                                    {averageScores['hybrid'].correctness.toFixed(3)}
-                                </span>
+                                <AnimatedNumber
+                                    value={averageScores['hybrid'].correctness}
+                                    decimals={3}
+                                    duration={2}
+                                    className="text-6xl font-bold text-white tracking-tighter"
+                                />
                                 <Badge className="ml-3 bg-emerald-500 text-white border-none align-top">RAGAS Correctness</Badge>
                             </div>
                             <p className="text-sm text-gray-400 mt-4 leading-relaxed z-10">
@@ -270,20 +336,26 @@ export default function SummaryPage() {
                                     <Activity className="w-4 h-4 text-blue-400" /> Metric Breakdown
                                 </h4>
                                 <div className="space-y-4">
-                                    {['rouge1', 'meteor'].map(metric => (
+                                    {['rouge1', 'meteor'].map((metric, index) => (
                                         <div key={metric}>
                                             <div className="flex justify-between text-xs text-gray-400 mb-1 uppercase">
                                                 <span>{metric}</span>
                                                 <span>vs Vector</span>
                                             </div>
                                             <div className="flex items-center gap-3">
-                                                <div className="text-xl font-bold text-white">
-                                                    {(averageScores['hybrid'][metric]).toFixed(3)}
+                                                <div className="text-xl font-bold text-white w-16">
+                                                    <AnimatedNumber
+                                                        value={averageScores['hybrid'][metric]}
+                                                        decimals={3}
+                                                        duration={1.5}
+                                                    />
                                                 </div>
-                                                <div className="flex-1 h-1.5 bg-white/10 rounded-full overflow-hidden">
-                                                    <div className="h-full bg-blue-500" style={{ width: `${(averageScores['hybrid'][metric] / 0.5) * 100}%` }} />
-                                                </div>
-                                                <span className={`text-xs ${averageScores['hybrid'][metric] > averageScores['vector'][metric] ? 'text-green-400' : 'text-red-400'}`}>
+                                                <AnimatedProgressBar
+                                                    value={averageScores['hybrid'][metric]}
+                                                    maxValue={0.5}
+                                                    delay={index * 0.3}
+                                                />
+                                                <span className={`text-xs w-12 text-right ${averageScores['hybrid'][metric] > averageScores['vector'][metric] ? 'text-green-400' : 'text-red-400'}`}>
                                                     {averageScores['hybrid'][metric] > averageScores['vector'][metric] ? '+' : ''}
                                                     {((averageScores['hybrid'][metric] - averageScores['vector'][metric]) * 100).toFixed(1)}%
                                                 </span>
@@ -299,7 +371,33 @@ export default function SummaryPage() {
                 {/* --- 2. DETAILED ANALYSIS --- */}
                 <div className="space-y-6">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                        <h2 className="text-2xl font-bold text-white">Scenario Analysis</h2>
+                        <div className="flex items-center gap-4">
+                            <h2 className="text-2xl font-bold text-white">Scenario Analysis</h2>
+                            {/* Method Toggle for Scenario */}
+                            <div className="flex gap-1 bg-white/5 p-1 rounded-lg">
+                                {METHODS.map(m => {
+                                    const isActive = scenarioMethods.includes(m.key);
+                                    return (
+                                        <button
+                                            key={m.key}
+                                            onClick={() => toggleScenarioMethod(m.key)}
+                                            className={`flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium transition-all ${isActive
+                                                    ? `${m.color} text-white`
+                                                    : 'text-gray-500 hover:text-gray-300'
+                                                }`}
+                                            title={isActive ? `Hide ${m.name}` : `Show ${m.name}`}
+                                        >
+                                            {isActive ? (
+                                                <Eye className="w-3 h-3" />
+                                            ) : (
+                                                <EyeOff className="w-3 h-3" />
+                                            )}
+                                            <span className="hidden sm:inline">{m.name}</span>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
                         <div className="flex bg-white/5 p-1 rounded-xl overflow-x-auto">
                             {performanceData.map(q => (
                                 <button
@@ -321,6 +419,9 @@ export default function SummaryPage() {
                                     <BarChart3 className="w-5 h-5 text-purple-500" />
                                     Method Comparison
                                 </h3>
+                                <span className="text-xs text-gray-500">
+                                    {scenarioMethods.length} of {METHODS.length} methods
+                                </span>
                             </div>
 
                             {/* Grouped Bar Chart */}
@@ -334,14 +435,12 @@ export default function SummaryPage() {
                                     ))}
                                 </div>
 
-                                {/* Groups */}
+                                {/* Groups - only show visible methods */}
                                 {METRICS.slice(0, 4).map((metric) => (
                                     <div key={metric} className="flex-1 h-full flex flex-col justify-end z-10 group/metric">
                                         <div className="flex justify-between items-end h-full gap-[2px]">
-                                            {METHODS.map(m => {
+                                            {METHODS.filter(m => scenarioMethods.includes(m.key)).map(m => {
                                                 const val = (currentQData.scores as any)[m.key][metric];
-                                                // limit to max height 100% (assuming val <= 1)
-                                                // If val > 1 (unlikely for these metrics), clip.
                                                 return (
                                                     <div key={m.key} className="w-full bg-white/5 rounded-t-sm relative group/bar h-full flex items-end">
                                                         <motion.div
@@ -353,7 +452,7 @@ export default function SummaryPage() {
                                                         />
                                                         {/* Tooltip */}
                                                         <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-black/90 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover/bar:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-20 border border-white/20">
-                                                            {val.toFixed(3)}
+                                                            {m.name}: {val.toFixed(3)}
                                                         </div>
                                                     </div>
                                                 )
@@ -382,11 +481,18 @@ export default function SummaryPage() {
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-white/5">
-                                        {METHODS.map(m => {
+                                        {METHODS.filter(m => scenarioMethods.includes(m.key)).map(m => {
                                             const scores = (currentQData.scores as any)[m.key];
                                             const isHybrid = m.key === 'hybrid';
                                             return (
-                                                <tr key={m.key} className={`group hover:bg-white/5 transition-colors ${isHybrid ? 'bg-emerald-900/10' : ''}`}>
+                                                <motion.tr
+                                                    key={m.key}
+                                                    className={`group hover:bg-white/5 transition-colors ${isHybrid ? 'bg-emerald-900/10' : ''}`}
+                                                    initial={{ opacity: 0, x: -20 }}
+                                                    animate={{ opacity: 1, x: 0 }}
+                                                    exit={{ opacity: 0, x: 20 }}
+                                                    transition={{ duration: 0.3 }}
+                                                >
                                                     <td className="py-3 px-4">
                                                         <div className="flex items-center gap-2">
                                                             <div className={`w-2 h-2 rounded-full ${m.color}`} />
@@ -402,7 +508,7 @@ export default function SummaryPage() {
                                                     <td className="py-3 px-4 text-right font-mono text-gray-400">
                                                         {scores.meteor.toFixed(4)}
                                                     </td>
-                                                </tr>
+                                                </motion.tr>
                                             )
                                         })}
                                     </tbody>
