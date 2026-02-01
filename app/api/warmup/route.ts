@@ -1,12 +1,14 @@
 import { NextResponse } from "next/server";
 import { pipeline, env } from "@xenova/transformers";
 
-// Configure transformers.js for serverless environment
-env.useBrowserCache = false;
-env.allowLocalModels = false;
+// Force WASM backend for Edge compatibility
+env.backends.onnx.wasm.numThreads = 1;
 
 let isWarmedUp = false;
 let embeddingPipeline: any = null;
+
+// Use Edge Runtime which supports WebAssembly
+export const runtime = 'edge';
 
 /**
  * Warmup endpoint - initializes the embedding model
@@ -18,7 +20,7 @@ export async function GET() {
             console.log("🔄 Warming up embedding model (Xenova/all-MiniLM-L6-v2)...");
 
             try {
-                // Initialize the embedding pipeline with quantized model for faster loading
+                // Initialize the embedding pipeline with quantized model
                 embeddingPipeline = await pipeline(
                     "feature-extraction",
                     "Xenova/all-MiniLM-L6-v2",

@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { hybridSearch } from "@/services/query.service";
 
+// Use Edge Runtime for WebAssembly/ONNX compatibility
+export const runtime = 'edge';
+
 export async function POST(request: NextRequest) {
   try {
     const { query, topK = 5, language = 'id' } = await request.json();
