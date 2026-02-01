@@ -16,10 +16,128 @@ interface Journal {
     file_url: string;
 }
 
+// --- GAME-STYLE DIALOG BOX COMPONENT ---
+interface DialogBoxProps {
+    searchQuery: string;
+    resultCount: number;
+    isSearching: boolean;
+    hasSearched: boolean;
+}
+
+function GameDialogBox({ searchQuery, resultCount, isSearching, hasSearched }: DialogBoxProps) {
+    const [displayedText, setDisplayedText] = useState("");
+    const [isTyping, setIsTyping] = useState(true);
+    const [isModelLoaded, setIsModelLoaded] = useState(false);
+
+    // Determine the text to display based on state
+    const getDialogText = () => {
+        if (isSearching) {
+            return "Tunggu sebentar ya, aku sedang mencari jurnal yang kamu minta...";
+        }
+        if (hasSearched && searchQuery) {
+            if (resultCount > 0) {
+                return `Berikut ${resultCount} jurnal yang berkaitan dengan "${searchQuery}". Silakan pilih yang ingin kamu baca!`;
+            } else {
+                return `Maaf, aku tidak menemukan jurnal dengan kata kunci "${searchQuery}". Coba kata kunci lain ya!`;
+            }
+        }
+        return "Selamat datang di perpustakaan digital Sumber Herbal! Ada yang bisa saya bantu?";
+    };
+
+    const fullText = getDialogText();
+
+    // Wait for model to load (simulate with delay)
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setIsModelLoaded(true);
+        }, 2500); // Wait 2.5 seconds for model to appear
+
+        return () => clearTimeout(timer);
+    }, []);
+
+    // Typewriter effect
+    useEffect(() => {
+        if (!isModelLoaded) return;
+
+        let index = 0;
+        setDisplayedText("");
+        setIsTyping(true);
+
+        const typeInterval = setInterval(() => {
+            if (index < fullText.length) {
+                setDisplayedText(fullText.slice(0, index + 1));
+                index++;
+            } else {
+                setIsTyping(false);
+                clearInterval(typeInterval);
+            }
+        }, 35); // Speed of typing
+
+        return () => clearInterval(typeInterval);
+    }, [fullText, isModelLoaded]);
+
+    // Don't show until model is loaded
+    if (!isModelLoaded) return null;
+
+    return (
+        <motion.div
+            className="absolute bottom-8 left-4 right-4 z-20"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+        >
+            {/* Dialog Box Container */}
+            <div className="relative">
+                {/* Character Name Tag */}
+                <div className="absolute -top-3 left-4 z-10">
+                    <div className="bg-emerald-600 px-4 py-1 rounded-t-lg border-2 border-emerald-400 shadow-lg">
+                        <span className="text-white text-xs font-bold tracking-wide">Arxip</span>
+                    </div>
+                </div>
+
+                {/* Main Dialog Box */}
+                <div className="bg-gradient-to-b from-slate-900/95 to-slate-950/95 backdrop-blur-md rounded-xl border-2 border-emerald-500/50 shadow-2xl shadow-emerald-900/30 p-5 pt-6 relative overflow-hidden">
+                    {/* Decorative Corner Elements */}
+                    <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-emerald-400 rounded-tl-lg" />
+                    <div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-emerald-400 rounded-tr-lg" />
+                    <div className="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-emerald-400 rounded-bl-lg" />
+                    <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-emerald-400 rounded-br-lg" />
+
+                    {/* Inner Glow Effect */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/5 via-transparent to-emerald-500/5 pointer-events-none" />
+
+                    {/* Text Content */}
+                    <p className="text-gray-100 text-sm leading-relaxed font-medium min-h-[3rem] relative z-10">
+                        {displayedText}
+                        {/* Blinking Cursor */}
+                        {isTyping && (
+                            <span className="inline-block w-2 h-4 bg-emerald-400 ml-1 animate-pulse" />
+                        )}
+                    </p>
+
+                    {/* Continue Indicator */}
+                    {!isTyping && (
+                        <motion.div
+                            className="absolute bottom-2 right-3 flex items-center gap-1 text-emerald-400/70"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: [0.5, 1, 0.5] }}
+                            transition={{ repeat: Infinity, duration: 1.5 }}
+                        >
+                            <span className="text-[10px] font-mono">▼</span>
+                        </motion.div>
+                    )}
+                </div>
+            </div>
+        </motion.div>
+    );
+}
+
 export default function DocumentPage() {
     const [query, setQuery] = useState("");
     const [documents, setDocuments] = useState<Journal[]>([]);
     const [isLoading, setIsLoading] = useState(false);
+    const [hasSearched, setHasSearched] = useState(false);
+    const [lastSearchQuery, setLastSearchQuery] = useState("");
 
     // Pagination state
     const [page, setPage] = useState(1);
@@ -49,11 +167,13 @@ export default function DocumentPage() {
         // Allow empty search to reset? Or just trim
         setIsLoading(true);
         setPage(1); // Reset to first page on new search
+        setLastSearchQuery(query); // Track what was searched
         try {
             const params = new URLSearchParams({ q: query });
             const res = await fetch(`/api/documents?${params.toString()}`);
             const data = await res.json();
             setDocuments(data.documents || []);
+            setHasSearched(true); // Mark that a search was performed
         } catch (err) {
             console.error(err);
         } finally {
@@ -82,6 +202,14 @@ export default function DocumentPage() {
                 <div className="absolute inset-0 z-10 pointer-events-none">
                     <Live2DViewer modelPath="/natori/runtime/natori_pro_t06.model3.json" />
                 </div>
+
+                {/* Game-style Dialog Box */}
+                <GameDialogBox
+                    searchQuery={lastSearchQuery}
+                    resultCount={documents.length}
+                    isSearching={isLoading}
+                    hasSearched={hasSearched}
+                />
 
                 {/* Navbar Overlay on Left */}
                 <div className="absolute top-6 left-6 z-20">

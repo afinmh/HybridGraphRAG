@@ -496,19 +496,17 @@ export function ChatWidget() {
                                 <div className="flex items-center gap-3">
                                     <div className="relative">
                                         <Image
-                                            src="/logo.png"
-                                            alt="Herlist Logo"
-                                            width={24}
-                                            height={24}
-                                            className="w-6 h-6 object-contain"
+                                            src="/ramu.png"
+                                            alt="Ramu"
+                                            width={32}
+                                            height={32}
+                                            className="w-8 h-8 object-contain rounded-full"
                                         />
-                                        <span className={`absolute top-0 right-0 w-1.5 h-1.5 rounded-full animate-ping ${isSystemReady ? 'bg-emerald-400' : warmupError ? 'bg-red-400' : 'bg-yellow-400'}`} />
-                                        <span className={`absolute top-0 right-0 w-1.5 h-1.5 rounded-full ${isSystemReady ? 'bg-emerald-400' : warmupError ? 'bg-red-400' : 'bg-yellow-400'}`} />
                                     </div>
                                     <div>
-                                        <h3 className="font-bold text-sm text-white tracking-wide font-mono">HERLIST</h3>
+                                        <h3 className="font-bold text-sm text-white tracking-wide font-mono">RAMU</h3>
                                         <p className={`text-[10px] font-mono tracking-wider ${isSystemReady ? 'text-emerald-400/80' : warmupError ? 'text-red-400/80' : 'text-yellow-400/80 animate-pulse'}`}>
-                                            {isSystemReady ? 'SYSTEM ONLINE' : warmupError ? 'ERROR' : loadingStatus.toUpperCase()}
+                                            {isSystemReady ? 'ONLINE' : warmupError ? 'ERROR' : loadingStatus.toUpperCase()}
                                         </p>
                                     </div>
                                 </div>
