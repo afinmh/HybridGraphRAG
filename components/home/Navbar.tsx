@@ -66,6 +66,9 @@ export function Navbar() {
               <Link href="/#features">Fitur</Link>
             </Button>
             <Button variant="ghost" asChild className="text-sm text-white/80 hover:text-emerald-300 hover:bg-white/5 transition-all duration-200 font-medium px-3 rounded-xl">
+              <Link href="/prepross">Preparation</Link>
+            </Button>
+            <Button variant="ghost" asChild className="text-sm text-white/80 hover:text-emerald-300 hover:bg-white/5 transition-all duration-200 font-medium px-3 rounded-xl">
               <Link href="/document">Perpustakaan</Link>
             </Button>
             <Button variant="ghost" asChild className="text-sm text-white/80 hover:text-emerald-300 hover:bg-white/5 transition-all duration-200 font-medium px-3 rounded-xl">

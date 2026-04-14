@@ -1,0 +1,69 @@
+Q1:
+Answer:
+Char Graph: For headaches, both Cinnamomum verum and Cinnamomum cassia are effective herbal remedies. These herbs have been traditionally used to alleviate headache symptoms. While the specific compounds responsible for this effect are not detailed in the provided information, these herbs are known for their analgesic properties that can help manage headache pain.
+Word Graph: Centellae Asiaticae Herba is a notable herb that contains a variety of compounds which may help alleviate headaches. It includes chloroform, flavonoids, and phenolics, which are known for their therapeutic properties. Additionally, it contains chloral hydrate, a compound often used for its sedative effects, which can be beneficial in reducing headache symptoms. The presence of ethanol 96% and HCl in the herb further enhances its medicinal potential. Overall, Centellae Asiaticae Herba's diverse chemical composition makes it a valuable herb for managing headaches.
+Sent Graph: For headache relief, particularly migraines, cinnamon is a recommended herb. While the provided knowledge graph does not list many herbs specifically for headaches, it does highlight cinnamon's effectiveness in curing migraine headaches. Other herbs mentioned, such as Centellae Asiaticae Herba, are noted for treating conditions like hyperuricemia and hypertension, and contain compounds like gallic acid and quercetin, but they are not indicated for headache relief. Therefore, cinnamon stands out as the herb of choice for addressing migraine headaches based on the information available.
+
+Eval:
+Char Graph: ROUGE-1: 0.167, ROUGE-2: 0.000, ROUGE-L: 0.095 | METEOR: 0.135
+Word Graph: ROUGE-1: 0.155, ROUGE-2: 0.018, ROUGE-L: 0.138 | METEOR: 0.158
+Sent Graph: ROUGE-1: 0.171, ROUGE-2: 0.035, ROUGE-L: 0.120 | METEOR: 0.204
+
+Q2:
+Answer:
+Char Graph: Several herbs have been identified as beneficial for managing diabetes. Trigonella foenum-graecum, commonly known as fenugreek, is particularly noted for its ability to cure both diabetes mellitus and Type II diabetes mellitus. Additionally, Panax ginseng and Cayratia trifolia are also effective in treating diabetes. Herbal extracts, in general, play a significant role in inhibiting triglycerides and total cholesterol, which are often elevated in individuals with diabetes. These herbs not only help in managing blood sugar levels but also address associated conditions like inflammation and oxidative stress, making them valuable in the holistic treatment of diabetes.
+Word Graph: Herbal extracts, including those from Cayratia trifolia and Trigonella foenum-graecum, are known to cure diabetes mellitus, specifically type II diabetes. This type of diabetes is characterized by chronic hyperglycemia, insulin resistance, inadequate insulin secretion, and dyslipidemia. While Centellae Asiaticae Herba contains various compounds like chloral hydrate, ethanol, flavonoids, HCl, chloroform, and phenolics, its specific role in diabetes treatment is not detailed in the provided information. However, the effectiveness of herbal remedies in managing diabetes is well-supported by the mentioned herbs.
+Sent Graph: For managing diabetes, several herbal options are noted. Trigonella foenum-graecum, commonly known as fenugreek, is highlighted for its effectiveness in curing type II diabetes. Additionally, Cayratia trifolia is recognized for its diabetes-curing properties. While these herbs are beneficial, traditional medical interventions such as insulin injections and oral antidiabetic agents remain primary treatments for diabetes mellitus, which is characterized by conditions like dyslipidemia and hyperglycemia.
+
+Eval:
+Char Graph: ROUGE-1: 0.199, ROUGE-2: 0.086, ROUGE-L: 0.113 | METEOR: 0.237
+Word Graph: ROUGE-1: 0.220, ROUGE-2: 0.096, ROUGE-L: 0.142 | METEOR: 0.242
+Sent Graph: ROUGE-1: 0.216, ROUGE-2: 0.092, ROUGE-L: 0.144 | METEOR: 0.290
+
+
+Q3:
+Answer:
+Answer:
+Char Graph: Hypertension can be addressed with several herbal remedies. Dracaena angustifolia and cinnamon are known to cure hypertension, while Guazuma ulmifolia helps inhibit it. Additionally, Averrhoa carambola has been identified as an effective herb for managing hypertension. These natural options can be considered as part of a holistic approach to treating high blood pressure.
+Word Graph: Several herbs have been identified as effective in managing hypertension. Galphimia ulmifolia Lamk and Dracaena angustifolia are known for their hypertensive properties. Additionally, cinnamon not only inhibits but also cures hypertension, making it a versatile option. Averrhoa carambola L. is another herb that has shown promise in treating hypertension. These natural remedies can be considered as part of a holistic approach to managing blood pressure.
+Sent Graph: Several herbs have been identified as effective in managing hypertension. Dracaena angustifolia and γ-Mangostin are known for their ability to inhibit and cure hypertension. Additionally, Cinnamomum verum and Cinnamomum zeylanicum, both varieties of cinnamon, are recognized for their hypertension-curing properties. Other notable herbs include Garcinia mangostana, commonly known as mangosteen, and Curcuma longa, which is also known for its medicinal properties. Averrhoa carambola L., or starfruit, is another herb that has been found to be effective in treating hypertension. These herbs offer natural alternatives for managing high blood pressure.
+
+Eval:
+Char Graph: ROUGE-1: 0.190, ROUGE-2: 0.018, ROUGE-L: 0.121 | METEOR: 0.144
+Word Graph: ROUGE-1: 0.266, ROUGE-2: 0.016, ROUGE-L: 0.125 | METEOR: 0.162
+Sent Graph: ROUGE-1: 0.275, ROUGE-2: 0.026, ROUGE-L: 0.157 | METEOR: 0.207
+
+Q4:
+Answer:
+Char Graph: Several medicinal plants are known for their fever-reducing properties. Mangosteen and Zingiber officinale, commonly known as ginger, are both effective in curing fever. Additionally, Abelmoschus manihot and Guazuma ulmifolia have been traditionally used for their fever-reducing effects. The compound andrographolide, found in Andrographis paniculata, is also recognized for its ability to combat fever. Furthermore, Ceiba pentandra is another medicinal plant that can help alleviate fever symptoms.
+Word Graph: Several medicinal herbs are known for their fever-reducing properties. Alstonia scholaris and Syzygium polyanthum are commonly used to alleviate fever. Additionally, Guazuma ulmifolia Lamk and Abelmoschus manihot (L.) Medik. are recognized for their fever-curing abilities. Other effective herbs include Acacia mangium and Centella asiatica, which have been traditionally employed to treat fever. Andrographis paniculata is also notable for its fever-reducing effects.
+Sent Graph: Several medicinal plants and their parts can be used to treat fever. Abelmoschus manihot is one such herb known for its fever-reducing properties. Additionally, different parts of plants like leaves, stems, fruits, roots or tubers, and bark are also effective in curing fever. These natural remedies have been traditionally used to alleviate fever symptoms.
+
+Eval:
+Char Graph: ROUGE-1: 0.211, ROUGE-2: 0.033, ROUGE-L: 0.114 | METEOR: 0.172
+Word Graph: ROUGE-1: 0.202, ROUGE-2: 0.000, ROUGE-L: 0.134 | METEOR: 0.130
+Sent Graph: ROUGE-1: 0.273, ROUGE-2: 0.037, ROUGE-L: 0.164 | METEOR: 0.182
+
+
+Q5:
+Answer:
+Char Graph: Several medicinal plants are known for their effectiveness in treating rheumatism. Arenga pinnata Merr. and Areca catechu L. are particularly noted for addressing both back pain and rheumatism. Additionally, Vernonia amygdalina and Persea americana are recognized for their curative properties against rheumatism. Curcuma domestica also stands out as a beneficial herb in managing this condition. These plants offer natural remedies that can help alleviate the symptoms associated with rheumatism.
+Word Graph: Several medicinal plants are known for their efficacy in treating rheumatism. Among these, Persea americana Mill. (avocado), Artocarpus heterophyllus Lamk. (jackfruit), and Arenga pinnata Merr. are notable for their curative properties. Additionally, Areca catechu L. and Vernonia amygdalina Delile have been traditionally used to alleviate rheumatism. These plants, along with others in the broader category of medicinal plants, offer natural remedies for managing the symptoms of rheumatism.
+Sent Graph: Several parts of medicinal plants can be used to alleviate rheumatism, including the stem, bark, leaves, root or tubers, and fruit. Additionally, specific plants like Areca catechu are known for their effectiveness in treating this condition. Rheumatism is often associated with disorders of the skeleton-muscular system, and these herbal remedies can provide relief from its symptoms.
+
+Eval:
+Char Graph: ROUGE-1: 0.194, ROUGE-2: 0.000, ROUGE-L: 0.117 | METEOR: 0.165
+Word Graph: ROUGE-1: 0.218, ROUGE-2: 0.020, ROUGE-L: 0.119 | METEOR: 0.238
+Sent Graph: ROUGE-1: 0.242, ROUGE-2: 0.000, ROUGE-L: 0.110 | METEOR: 0.269
+
+
+Q6:
+Answer:
+Char Graph: Costus spicatus Jacq. is a medicinal herb known for its effectiveness in treating heartburn. This herb has been traditionally used to alleviate the discomfort and burning sensation associated with heartburn. Its soothing properties help to calm the digestive system and reduce the symptoms of acid reflux. Incorporating Costus spicatus Jacq. into your health regimen can provide natural relief from heartburn.
+Word Graph: Costus spicatus is a medicinal herb known for its effectiveness in treating heartburn. This herb has been traditionally used to alleviate the discomfort and symptoms associated with heartburn, providing relief to those who suffer from this condition. Its natural properties make it a popular choice for those seeking herbal remedies for digestive issues.
+Sent Graph: Costus spicatus Jacq. is a medicinal herb known for its effectiveness in treating heartburn. This herb has been traditionally used to alleviate the discomfort and burning sensation associated with heartburn. Its soothing properties help to calm the digestive system and reduce the symptoms of acid reflux. Incorporating Costus spicatus Jacq. into your diet or as a herbal remedy can provide relief from heartburn and improve overall digestive health.
+
+Eval:
+Char Graph: ROUGE-1: 0.314, ROUGE-2: 0.100, ROUGE-L: 0.235 | METEOR: 0.266
+Word Graph: ROUGE-1: 0.358, ROUGE-2: 0.065, ROUGE-L: 0.253 | METEOR: 0.328
+Sent Graph: ROUGE-1: 0.364, ROUGE-2: 0.130, ROUGE-L: 0.236 | METEOR: 0.364

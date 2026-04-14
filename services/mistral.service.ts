@@ -412,6 +412,112 @@ export async function translateQueryToEnglish(
 }
 
 /**
+ * Multi-Query Expansion (MQE)
+ * Mirrors Python: mq_prompt → "Write 3 search queries in English to find research papers about: '{query}'"
+ * Returns [originalQuery, ...expandedQueries] (up to 3 total)
+ */
+export async function expandQueryMQE(
+  query: string,
+  apiKey: string
+): Promise<string[]> {
+  const queries: string[] = [query];
+
+  if (!apiKey) return queries;
+
+  try {
+    const response = await fetch(MISTRAL_API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: MISTRAL_MODEL,
+        messages: [
+          {
+            role: "user",
+            content: `Write 3 search queries in English to find research papers about: '${query}'. Return ONLY a JSON array of strings, no markdown, no explanation.\nExample: ["query 1", "query 2", "query 3"]`,
+          },
+        ],
+        temperature: 0.3,
+        max_tokens: 200,
+      }),
+    });
+
+    if (!response.ok) return queries;
+
+    const data = await response.json();
+    const content = data.choices[0]?.message?.content?.trim() || "[]";
+    try {
+      const cleaned = content.replace(/```json\n?|\n?```/g, "").trim();
+      const expanded: string[] = JSON.parse(cleaned);
+      if (Array.isArray(expanded)) {
+        queries.push(...expanded.filter((q) => typeof q === "string" && q.length > 0));
+      }
+    } catch {
+      // Fallback: return original
+    }
+  } catch (error) {
+    console.error("MQE expansion error:", error);
+  }
+
+  // Return up to 3 distinct queries (original + 2 expansions like the Python)
+  return [...new Set(queries)].slice(0, 3);
+}
+
+/**
+ * Extract entities for graph search from a single query
+ * Mirrors Python: ent_prompt → "Identify the primary herb and the disease in: '{q}'"
+ * Returns array of entity name strings (not typed)
+ */
+export async function extractEntitiesForGraphSearch(
+  query: string,
+  apiKey: string
+): Promise<string[]> {
+  if (!apiKey) return query.split(" ").filter((w) => w.length >= 3);
+
+  try {
+    const response = await fetch(MISTRAL_API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: MISTRAL_MODEL,
+        messages: [
+          {
+            role: "user",
+            content: `Identify the primary herb and the disease/symptom in: '${query}'. Return ONLY a JSON array of strings, no markdown.\nExample: ["ginger", "diabetes"]`,
+          },
+        ],
+        temperature: 0.1,
+        max_tokens: 100,
+      }),
+    });
+
+    if (!response.ok) return query.split(" ").filter((w) => w.length >= 3);
+
+    const data = await response.json();
+    const content = data.choices[0]?.message?.content?.trim() || "[]";
+    try {
+      const cleaned = content.replace(/```json\n?|\n?```/g, "").trim();
+      const entities: string[] = JSON.parse(cleaned);
+      if (Array.isArray(entities) && entities.length > 0) {
+        return entities.filter((e) => typeof e === "string" && e.length >= 3);
+      }
+    } catch {
+      // Fallback
+    }
+  } catch (error) {
+    console.error("Graph entity extraction error:", error);
+  }
+
+  // Fallback: split query words
+  return query.split(" ").filter((w) => w.length >= 3);
+}
+
+/**
  * Generate answer from query using hybrid search context (vector + graph)
  * OPTIMIZED: Prioritas pada herbs yang muncul di kedua context, jawaban lebih fokus
  */

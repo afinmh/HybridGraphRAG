@@ -50,7 +50,7 @@ const ChatMessage = ({ msg, language }: { msg: Message, language: 'id' | 'en' })
                     <ReactMarkdown>{msg.content}</ReactMarkdown>
                 </div>
 
-                {/* Sources Section */}
+                {/* Sources Section — hanya tampil kalau ada sumber */}
                 {msg.role === 'assistant' && msg.sources && msg.sources.length > 0 && (
                     <div className="mt-3 border-t border-white/10 pt-2">
                         <button
@@ -58,7 +58,7 @@ const ChatMessage = ({ msg, language }: { msg: Message, language: 'id' | 'en' })
                             className="flex items-center gap-2 text-[10px] sm:text-xs text-emerald-400 font-mono hover:text-emerald-300 transition-colors bg-emerald-500/10 px-3 py-1.5 rounded-full border border-emerald-500/20"
                         >
                             <BookOpen className="w-3 h-3" />
-                            {language === 'en' ? 'See Sources' : 'Lihat Sumber'}
+                            {language === 'en' ? `See Sources (${msg.sources.length})` : `Lihat Sumber (${msg.sources.length})`}
                             <ChevronDown className={`w-3 h-3 transition-transform ${showSources ? 'rotate-180' : ''}`} />
                         </button>
 
@@ -82,39 +82,25 @@ const ChatMessage = ({ msg, language }: { msg: Message, language: 'id' | 'en' })
                                                             className="font-bold text-emerald-300 truncate flex-1 min-w-0 hover:underline hover:text-emerald-200 flex items-center gap-1 group/link"
                                                             title="Buka Jurnal (Open Journal)"
                                                         >
-                                                            <span>{idx + 1}. {source.title}</span>
+                                                            <span>{idx + 1}. {source.title || source.text.substring(0, 30) + '...'}</span>
                                                             <ExternalLink className="w-3 h-3 flex-shrink-0 opacity-70 group-hover/link:opacity-100" />
                                                         </a>
                                                     ) : (
-                                                        <span className="font-bold text-emerald-300 truncate flex-1 min-w-0">{idx + 1}. {source.title}</span>
+                                                        <span className="font-bold text-emerald-300 truncate flex-1 min-w-0">{idx + 1}. {source.title || source.text.substring(0, 30) + '...'}</span>
                                                     )}
                                                 </div>
-                                                <div className="text-gray-400 mb-2 font-mono">
-                                                    Penulis: <span className="text-gray-300">{source.author}</span> |
-                                                    Tahun: <span className="text-gray-300">{source.year}</span> |
-                                                    Similarity: <span className="text-emerald-500">{source.similarity.toFixed(4)}</span>
-                                                </div>
+                                                {source.author && (
+                                                    <div className="text-gray-400 mb-2 font-mono">
+                                                        Penulis: <span className="text-gray-300">{source.author}</span> |
+                                                        Tahun: <span className="text-gray-300">{source.year || '-'}</span> |
+                                                        Similarity: <span className="text-emerald-500">{Number(source.similarity ?? 0).toFixed(4)}</span>
+                                                    </div>
+                                                )}
                                                 <div className="text-gray-300 italic pl-2 border-l-2 border-emerald-500/30 line-clamp-3">
                                                     "{source.text.substring(0, 150)}..."
                                                 </div>
                                             </div>
                                         ))}
-
-                                        {/* Detail Link (Moved Inside Sources) */}
-                                        {msg.fullResponse && (
-                                            <div className="mt-2 text-right">
-                                                <Link
-                                                    href="/analysis?mode=cached"
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    onClick={handleViewDetail}
-                                                    className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs text-emerald-400/80 hover:text-emerald-400 transition-colors font-mono tracking-wide py-1 px-2 hover:bg-emerald-500/10 rounded-lg group/btn"
-                                                >
-                                                    {language === 'en' ? 'FULL ANALYSIS' : 'ANALISIS LENGKAP'}
-                                                    <Maximize2 className="w-3 h-3 group-hover/btn:scale-110 transition-transform" />
-                                                </Link>
-                                            </div>
-                                        )}
                                     </div>
                                 </motion.div>
                             )}
@@ -122,7 +108,27 @@ const ChatMessage = ({ msg, language }: { msg: Message, language: 'id' | 'en' })
                     </div>
                 )}
 
-
+                {/* ── Full Analysis link — SELALU tampil untuk pesan assistant yang punya fullResponse ── */}
+                {msg.role === 'assistant' && msg.fullResponse && (
+                    <div className="mt-2 pt-2 border-t border-white/5 flex items-center justify-between gap-2 flex-wrap">
+                        {/* Jumlah chunks info kalau ada */}
+                        {msg.fullResponse.summary && (
+                            <span className="text-[10px] text-gray-600 font-mono">
+                                {msg.fullResponse.summary.totalChunks ?? 0} chunks · {msg.fullResponse.summary.totalHerbs ?? 0} herbs · {msg.fullResponse.summary.totalGraphRelations ?? msg.fullResponse.summary.totalEffects ?? 0} graph rels
+                            </span>
+                        )}
+                        <Link
+                            href="/analysis?mode=cached"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={handleViewDetail}
+                            className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs text-emerald-400/80 hover:text-emerald-400 transition-colors font-mono tracking-wide py-1 px-2 hover:bg-emerald-500/10 rounded-lg group/btn ml-auto"
+                        >
+                            {language === 'en' ? 'FULL ANALYSIS' : 'ANALISIS LENGKAP'}
+                            <Maximize2 className="w-3 h-3 group-hover/btn:scale-110 transition-transform" />
+                        </Link>
+                    </div>
+                )}
 
                 <span className="text-[10px] opacity-40 mt-1 block font-mono">
                     {new Date(Number(msg.id) || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -353,27 +359,40 @@ export function ChatWidget() {
 
             const data = await response.json();
 
-            // Process sources
+            // Process sources — ambil dari vectorResults, journal jika ada, fallback ke chunk text
             let sources: Source[] = [];
             if (data.vectorResults && Array.isArray(data.vectorResults)) {
                 const uniqueSources = new Map<string, Source>();
 
                 data.vectorResults.forEach((res: any) => {
-                    if (res.journal && res.journal.title) {
-                        const existing = uniqueSources.get(res.journal.title);
-                        if (!existing || res.similarity > existing.similarity) {
-                            uniqueSources.set(res.journal.title, {
-                                title: res.journal.title,
-                                author: res.journal.author,
-                                year: res.journal.year,
-                                similarity: res.similarity,
-                                text: res.text,
-                                file_url: res.journal.file_url
-                            });
-                        }
+                    const hasJournal = res.journal && res.journal.title;
+
+                    // Key: journal title jika ada, kalau tidak pakai potongan text
+                    const key = hasJournal
+                        ? res.journal.title
+                        : (res.text ?? res.text_content ?? '').substring(0, 60);
+
+                    if (!key) return; // skip jika tidak ada text sama sekali
+
+                    const existing = uniqueSources.get(key);
+                    const sim = Number(res.similarity ?? 0);
+
+                    if (!existing || sim > Number(existing.similarity ?? 0)) {
+                        uniqueSources.set(key, {
+                            title: hasJournal
+                                ? res.journal.title
+                                : `Chunk: ${(res.text ?? '').substring(0, 40)}...`,
+                            author: res.journal?.author ?? '',
+                            year: res.journal?.year ?? '',
+                            similarity: sim,
+                            text: res.text ?? res.text_content ?? '',
+                            file_url: res.journal?.file_url ?? ''
+                        });
                     }
                 });
-                sources = Array.from(uniqueSources.values());
+                sources = Array.from(uniqueSources.values())
+                    .sort((a, b) => Number(b.similarity) - Number(a.similarity))
+                    .slice(0, 5); // top 5 sumber
             }
 
             const botMsg: Message = {

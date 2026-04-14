@@ -1,15 +1,28 @@
 /**
  * Client-side Embedding Service
- * Runs @huggingface/transformers in the browser using WebAssembly
- * This module should ONLY be imported on the client side
+ * Model: Xenova/bge-small-en-v1.5 (port of BAAI/bge-small-en-v1.5)
+ *
+ * MUST match the model used in Python experiment (05_hybrid_retrieval_experiment.py):
+ *   model_bge = SentenceTransformer("BAAI/bge-small-en-v1.5")
+ *   q_vec = model_bge.encode([q], normalize_embeddings=True)[0].tolist()
+ *
+ * Output: 384-dimensional normalized vector — identical embedding space as the DB.
+ * Runs in-browser via @xenova/transformers (WebAssembly ONNX runtime).
  */
 
 let embeddingPipeline: any = null;
 let isLoading = false;
 let isReady = false;
 
+// ─── Model Config ─────────────────────────────────────────────────────────────
+// Xenova/bge-small-en-v1.5 = HuggingFace port of BAAI/bge-small-en-v1.5
+// Same model used by Python experiment → embeddings are compatible with DB vectors
+const MODEL_NAME = "Xenova/bge-small-en-v1.5";
+const MODEL_DIMS = 384;
+
 /**
  * Initialize the embedding pipeline (call this on app load)
+ * Downloads ~30MB quantized ONNX model on first run, then cached in browser
  */
 export async function initEmbedding(): Promise<boolean> {
     // Only run in browser
@@ -30,10 +43,17 @@ export async function initEmbedding(): Promise<boolean> {
     isLoading = true;
 
     try {
-        console.log("🔄 Loading embedding model in browser...");
+        console.log(`🔄 Loading embedding model: ${MODEL_NAME}...`);
 
-        // Dynamic import @huggingface/transformers (successor to @xenova/transformers)
-        const { pipeline, env } = await import("@huggingface/transformers");
+        // Dynamic import @xenova/transformers
+        const TransformersModule = await import("@xenova/transformers");
+        const pipeline = TransformersModule.pipeline || (TransformersModule.default && TransformersModule.default.pipeline);
+        const env = TransformersModule.env || (TransformersModule.default && TransformersModule.default.env);
+
+        if (!pipeline || !env) {
+            console.error("TransformersModule keys:", Object.keys(TransformersModule || {}));
+            throw new Error("Could not extract pipeline and env from @xenova/transformers");
+        }
 
         // Configure for browser environment
         env.useBrowserCache = true;
@@ -41,18 +61,26 @@ export async function initEmbedding(): Promise<boolean> {
 
         embeddingPipeline = await pipeline(
             "feature-extraction",
-            "Xenova/all-MiniLM-L6-v2",
+            MODEL_NAME,
             {
-                dtype: "fp32",
+                quantized: true, // Use quantized ONNX (smaller download, same quality for retrieval)
             }
         );
 
-        // Test the pipeline
-        const testOutput = await embeddingPipeline("test", { pooling: "mean", normalize: true });
-        console.log("Test embedding dimensions:", testOutput.data.length);
+        // Validate dimensions match DB
+        const testOutput = await embeddingPipeline("test query", {
+            pooling: "mean",
+            normalize: true,
+        });
+
+        const dims = testOutput.data.length;
+        if (dims !== MODEL_DIMS) {
+            console.warn(`⚠️ Embedding dims mismatch: got ${dims}, expected ${MODEL_DIMS}`);
+        } else {
+            console.log(`✅ ${MODEL_NAME} loaded — ${dims}D vectors (matches DB)`);
+        }
 
         isReady = true;
-        console.log("✅ Embedding model loaded in browser!");
         return true;
     } catch (error) {
         console.error("❌ Failed to load embedding model:", error);
@@ -65,6 +93,10 @@ export async function initEmbedding(): Promise<boolean> {
 
 /**
  * Generate embedding for a text query
+ * Mirrors Python: model_bge.encode([text], normalize_embeddings=True)[0].tolist()
+ *
+ * BGE-small-en-v1.5 does NOT need a query prefix (unlike BGE-large).
+ * pooling=mean + normalize=true → L2-normalized mean pooling = cosine-ready vectors.
  */
 export async function generateEmbedding(text: string): Promise<number[]> {
     // Only run in browser
@@ -81,7 +113,7 @@ export async function generateEmbedding(text: string): Promise<number[]> {
 
     const output = await embeddingPipeline(text, {
         pooling: "mean",
-        normalize: true
+        normalize: true,   // L2 normalize = cosine similarity ready, same as Python normalize_embeddings=True
     });
 
     return Array.from(output.data) as number[];

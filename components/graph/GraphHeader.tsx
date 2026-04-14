@@ -1,27 +1,28 @@
 
-import { Dna, ChevronRight } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 export const GraphHeader = () => {
     return (
-        <div className="mb-8 relative z-10">
-            <div className="flex items-center gap-2 text-xs font-mono text-emerald-500/80 mb-4">
-                <Link href="/" className="hover:text-emerald-400 transition-colors">HOME</Link>
-                <ChevronRight className="w-3 h-3" />
-                <span className="text-white">GRAPH KNOWLEDGE</span>
+        <div className="flex items-center justify-between mb-8 relative z-10 w-full">
+            <div className="flex items-center gap-4">
+                <Link href="/">
+                    <Button variant="ghost" size="sm" className="bg-white/5 border border-white/10 text-gray-300 hover:text-white hover:bg-white/10 rounded-full gap-2">
+                        <ChevronLeft className="w-4 h-4" />
+                        Back
+                    </Button>
+                </Link>
+                <div className="h-6 w-px bg-white/10" />
+                <h1 className="text-lg md:text-xl font-bold text-white bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 to-teal-400">
+                    Herbal Knowledge Graph
+                </h1>
             </div>
-
-            <h1 className="text-3xl md:text-5xl font-bold text-white mb-4 tracking-tight">
-                Herbal Knowledge Graph
-                <span className="block mt-2 text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400 text-xl md:text-2xl font-normal opacity-90">
-                    Visualizing Bio-Active Connections
-                </span>
-            </h1>
-
-            <p className="text-gray-400 max-w-2xl text-sm md:text-base leading-relaxed">
-                Explore the complex web of relationships between plants, compounds, and diseases.
-                Hover over nodes to reveal detailed entity information.
-            </p>
+            <div className="hidden md:block">
+                <p className="text-gray-400 max-w-sm text-xs text-right">
+                    Explore the complex web of relationships between plants, compounds, and diseases.
+                </p>
+            </div>
         </div>
     );
 };

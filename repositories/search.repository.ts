@@ -1,5 +1,7 @@
 /**
  * Search Repository - Vector and Graph search operations
+ * Aligned with 05_hybrid_retrieval_experiment.py pipeline:
+ * MQE → Vector Search → Graph Search → Reranking → Deduplication → Construction
  */
 
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
@@ -57,23 +59,169 @@ export interface GraphRelation {
 
 /**
  * Vector similarity search using embeddings
+ * Uses actual Supabase RPCs: match_chunk_sentence2 → match_chunk_word2 → match_chunk_character2 (fallback chain)
+ * Mirrors 05_hybrid_retrieval_experiment.py:
+ *   supabase_client.rpc(v_rpc, {"query_embedding": q_vec, "match_threshold": 0.05, "match_count": 15})
+ *
+ * Function signature (from DB):
+ *   match_chunk_sentence2(query_embedding vector(384), match_threshold float, match_count int)
+ * Returns: id uuid, journal_id uuid, text_content text, similarity float
  */
 export async function vectorSearch(
   queryVector: number[],
-  topK: number = 5
+  topK: number = 15
 ): Promise<VectorSearchResult[]> {
   const supabase = getSupabaseClient();
-  const { data, error } = await supabase.rpc("search_similar_chunks", {
-    query_embedding: `[${queryVector.join(",")}]`,
-    match_count: topK,
-  });
 
-  if (error) {
-    console.error("Vector search error:", error);
-    throw new Error(`Vector search failed: ${error.message}`);
+  // supabase-js serializes a number[] as a JSON array which PostgREST
+  // accepts for vector(384) parameters — no string conversion needed
+  const rpcParams = {
+    query_embedding: queryVector,
+    match_threshold: 0.05,   // Same as Python experiment
+    match_count: topK,
+  };
+
+  // Try RPCs in order: sentence → word → character (all have identical signatures)
+  const rpcs = ["match_chunk_sentence2", "match_chunk_word2", "match_chunk_character2"];
+
+  for (const rpcName of rpcs) {
+    try {
+      const { data, error } = await supabase.rpc(rpcName, rpcParams);
+
+      if (!error && data && data.length > 0) {
+        console.log(`  ✓ Vector RPC "${rpcName}" returned ${data.length} results`);
+        return mapChunkRows(data);
+      }
+
+      if (error) {
+        console.warn(`  Vector RPC "${rpcName}" failed:`, error.message);
+      }
+    } catch (e) {
+      console.warn(`  Vector RPC "${rpcName}" exception:`, e);
+    }
   }
 
-  return data || [];
+  // Last resort: direct table query on chunk_sentence2
+  return await vectorSearchFallback(topK);
+}
+
+/** Map chunk_sentence2/word2/character2 rows to VectorSearchResult */
+function mapChunkRows(rows: any[]): VectorSearchResult[] {
+  return rows.map((row: any) => ({
+    id: row.id,
+    text: row.text_content ?? row.text ?? "",
+    journal_id: row.journal_id,
+    similarity: row.similarity ?? 0,
+    // journal metadata filled later by getJournalsForEmbeddings
+  }));
+}
+
+/**
+ * Fallback: direct chunk_sentence2 table query (no cosine ranking)
+ * Used when all RPCs fail.
+ */
+async function vectorSearchFallback(topK: number): Promise<VectorSearchResult[]> {
+  const supabase = getSupabaseClient();
+
+  const tables = ["chunk_sentence2", "chunk_word2", "chunk_character2", "embeddings"];
+
+  for (const tbl of tables) {
+    try {
+      // Detect column name: chunk tables use text_content, embeddings uses text
+      const textCol = tbl === "embeddings" ? "text" : "text_content";
+      const { data, error } = await supabase
+        .from(tbl)
+        .select(`id, journal_id, ${textCol}`)
+        .limit(topK);
+
+      if (!error && data && data.length > 0) {
+        console.log(`  ✓ Fallback table "${tbl}" returned ${data.length} rows`);
+        return data.map((row: any) => ({
+          id: row.id,
+          text: row[textCol] ?? "",
+          journal_id: row.journal_id,
+          similarity: 0.1,  // No real score in fallback
+        }));
+      }
+    } catch { /* try next */ }
+  }
+
+  console.warn("  All vector search fallbacks exhausted — returning []");
+  return [];
+}
+
+
+/**
+ * Graph relations search — queries graph_sentence/graph_word/graph_character tables
+ * Mirrors Python: supabase.table(g_table).select('*')
+ *   .or(`entity_1.ilike.%{ent}%,entity_2.ilike.%{ent}%`).limit(5)
+ * Falls back to entities/relations tables if graph_sentence doesn't exist.
+ */
+export async function graphRelationsSearch(
+  entities: string[],
+  graphTable: "graph_sentence" | "graph_word" | "graph_character" = "graph_sentence",
+  limitPerEntity: number = 5
+): Promise<string[]> {
+  const supabase = getSupabaseClient();
+  const allRelStrings: string[] = [];
+
+  for (const ent of entities) {
+    // Sanitize entity name
+    const safe = ent.replace(/[^a-zA-Z0-9\s]/g, "").trim();
+    if (safe.length < 3) continue;
+
+    try {
+      const { data } = await supabase
+        .from(graphTable)
+        .select("*")
+        .or(`entity_1.ilike.%${safe}%,entity_2.ilike.%${safe}%`)
+        .limit(limitPerEntity);
+
+      if (data && data.length > 0) {
+        for (const row of data) {
+          const rel = `${row.entity_1} ${String(row.relation).replace(/_/g, " ")} ${row.entity_2}.`;
+          allRelStrings.push(rel);
+        }
+        continue; // Found results in graph table, skip fallback
+      }
+    } catch {
+      // Table may not exist, fall through to fallback
+    }
+
+    // Fallback: use entities + relations tables (normalized schema)
+    try {
+      const { data: entData } = await supabase
+        .from("entities")
+        .select("id, name, type")
+        .ilike("name", `%${safe}%`)
+        .limit(5);
+
+      if (entData && entData.length > 0) {
+        const ids = entData.map((e: any) => e.id);
+        const { data: relData } = await supabase
+          .from("relations")
+          .select(`
+            relation,
+            source:entities!relations_source_id_fkey(name),
+            target:entities!relations_target_id_fkey(name)
+          `)
+          .or(`source_id.in.(${ids.join(",")}),target_id.in.(${ids.join(",")})`)
+          .limit(limitPerEntity);
+
+        if (relData) {
+          for (const row of relData as any[]) {
+            if (row.source && row.target) {
+              allRelStrings.push(`${row.source.name} ${row.relation} ${row.target.name}.`);
+            }
+          }
+        }
+      }
+    } catch {
+      // Silent fail for graph path
+    }
+  }
+
+  return allRelStrings;
 }
 
 /**
@@ -267,30 +415,58 @@ export async function traverseGraph(
 }
 
 /**
- * Get journal metadata for embeddings
+ * Get journal metadata for chunk IDs from chunk_sentence2/word2/character2 tables.
+ * Returns a Map<chunkId, {title, author, year, file_url}>.
+ * Tries chunk_sentence2 first (matching the Python experiment's primary table),
+ * then falls back to word2/character2/embeddings.
  */
 export async function getJournalsForEmbeddings(
-  embeddingIds: string[]
+  chunkIds: string[]
 ): Promise<Map<string, any>> {
-  if (embeddingIds.length === 0) return new Map();
+  if (chunkIds.length === 0) return new Map();
 
   const supabase = getSupabaseClient();
-  const { data: embeddings } = await supabase
-    .from("embeddings")
-    .select(
-      `
-      id,
-      journal:journals(id, title, author, year, file_url)
-    `
-    )
-    .in("id", embeddingIds);
+  const journalMap = new Map<string, any>();
 
-  const journalMap = new Map();
-  embeddings?.forEach((emb: any) => {
-    if (emb.journal) {
-      journalMap.set(emb.id, emb.journal);
-    }
-  });
+  // Try each chunk table in order — same priority as vectorSearch
+  const chunkTables = ["chunk_sentence2", "chunk_word2", "chunk_character2", "embeddings"];
+
+  for (const tbl of chunkTables) {
+    try {
+      const { data, error } = await supabase
+        .from(tbl)
+        .select("id, journal_id")
+        .in("id", chunkIds);
+
+      if (error || !data || data.length === 0) continue;
+
+      // Collect unique journal_ids from this batch
+      const journalIds = [...new Set(data.map((r: any) => r.journal_id).filter(Boolean))];
+      if (journalIds.length === 0) continue;
+
+      const { data: journals } = await supabase
+        .from("journals")
+        .select("id, title, author, year, file_url")
+        .in("id", journalIds);
+
+      if (!journals) continue;
+
+      // Build lookup: journal_id → journal metadata
+      const jById = new Map(journals.map((j: any) => [j.id, j]));
+
+      // Map chunk id → journal
+      for (const row of data) {
+        const journal = jById.get(row.journal_id);
+        if (journal) {
+          journalMap.set(row.id, journal);
+        }
+      }
+
+      // If we found results in this table, stop (avoid duplicate keys)
+      if (journalMap.size > 0) break;
+    } catch { /* try next table */ }
+  }
 
   return journalMap;
 }
+

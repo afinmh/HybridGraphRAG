@@ -1,0 +1,15 @@
+Saya tidak ingin ekstraksi SVO (Subject-Verb-Object) yang generik. Saya ingin menerapkan Strict Biological Ontology.
+
+Alur yang diinginkan (Two-Tier Chain):
+
+Fungsi Tier 1 (summarizeMedicalText): Menerima chunk teks mentah. Memanggil Mistral API dengan instruksi sistem: "You are a strict botanical and pharmacological expert. Summarize the following text by prioritizing and preserving all exact scientific names of plants, chemical compounds, body parts, diseases, and pharmacological verbs. Do not lose any medical context."
+
+Fungsi Tier 2 (extractBiologicalGraph): Menerima hasil teks dari Tier 1. Memanggil Mistral API (gunakan mode JSON / response format JSON jika didukung, atau prompt yang memaksa output JSON murni).
+
+Instruksi Sistem Tier 2: "You are an expert data extractor for a Knowledge Graph. Extract relationships from the text strictly adhering to the following ontology:
+
+ALLOWED ENTITY TYPES: 'Plant', 'Compound', 'Disease', 'Symptom', 'BodyPart'.
+
+ALLOWED RELATION TYPES: 'contains' (Plant -> Compound), 'cures' (Plant/Compound -> Disease), 'inhibits' (Compound -> Symptom/Disease), 'causes' (Disease -> Symptom).
+
+Return ONLY a valid JSON array of arrays in this exact format: [["Entity1", "EntityType1", "Relation", "Entity2", "EntityType2"]]. Do not invent new relation types."
