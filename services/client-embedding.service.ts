@@ -46,9 +46,12 @@ export async function initEmbedding(): Promise<boolean> {
         console.log(`🔄 Loading embedding model: ${MODEL_NAME}...`);
 
         // Dynamic import @xenova/transformers
-        const TransformersModule = await import("@xenova/transformers");
-        const pipeline = TransformersModule.pipeline || (TransformersModule.default && TransformersModule.default.pipeline);
-        const env = TransformersModule.env || (TransformersModule.default && TransformersModule.default.env);
+        // Cast to any: @xenova/transformers types don't declare .default,
+        // but webpack may wrap ESM as CJS with a .default property at runtime.
+        const TransformersModule = await import("@xenova/transformers") as any;
+        const pipeline = TransformersModule.pipeline ?? TransformersModule.default?.pipeline;
+        const env = TransformersModule.env ?? TransformersModule.default?.env;
+
 
         if (!pipeline || !env) {
             console.error("TransformersModule keys:", Object.keys(TransformersModule || {}));
