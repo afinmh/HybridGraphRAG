@@ -78,13 +78,11 @@ export function Navbar() {
           {/* Kanan: Tombol Summary */}
           <div className="flex flex-1 justify-end items-center">
             <Button
-              asChild
-              className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg shadow-green-500/25 hover:shadow-green-500/40 transition-all duration-300 hover:scale-105 font-medium px-5 py-2 text-sm"
+              disabled
+              className="bg-gray-800/80 border border-gray-700 text-gray-400 cursor-not-allowed font-medium px-5 py-2 text-sm"
             >
-              <Link href="/summary">
-                <Sparkles className="w-4 h-4 mr-2" />
-                Evaluasi
-              </Link>
+              <Sparkles className="w-4 h-4 mr-2 opacity-50" />
+              Under Maintenance
             </Button>
           </div>
         </div>

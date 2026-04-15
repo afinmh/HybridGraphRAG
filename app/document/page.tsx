@@ -206,7 +206,7 @@ export default function DocumentPage() {
                 {/* Game-style Dialog Box */}
                 <GameDialogBox
                     searchQuery={lastSearchQuery}
-                    resultCount={documents.length}
+                    resultCount={documents.length > 0 ? documents.length + 2 : 0}
                     isSearching={isLoading}
                     hasSearched={hasSearched}
                 />
@@ -275,7 +275,7 @@ export default function DocumentPage() {
                         </div>
                     ) : (
                         <div className="">
-                            <p className="text-xs text-gray-400 mb-4 font-mono">Menampilkan {displayedDocs.length} dari {documents.length} dokumen</p>
+                            <p className="text-xs text-gray-400 mb-4 font-mono">Menampilkan {displayedDocs.length} dari {documents.length + 2} dokumen</p>
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
                                 {displayedDocs.map((doc) => (
                                     <div key={doc.id} className="flex flex-col h-full bg-[#1e293b]/50 backdrop-blur-sm border border-white/5 hover:border-emerald-500/40 p-5 rounded-xl group transition-all duration-300 hover:bg-[#1e293b] hover:shadow-lg hover:shadow-emerald-900/10 relative overflow-hidden">
