@@ -60,12 +60,6 @@ export function Navbar() {
           {/* Tengah: Menu */}
           <div className="hidden md:flex flex-1 justify-center items-center gap-2">
             <Button variant="ghost" asChild className="text-sm text-white/80 hover:text-emerald-300 hover:bg-white/5 transition-all duration-200 font-medium px-3 rounded-xl">
-              <Link href="/#about">Tentang</Link>
-            </Button>
-            <Button variant="ghost" asChild className="text-sm text-white/80 hover:text-emerald-300 hover:bg-white/5 transition-all duration-200 font-medium px-3 rounded-xl">
-              <Link href="/#features">Fitur</Link>
-            </Button>
-            <Button variant="ghost" asChild className="text-sm text-white/80 hover:text-emerald-300 hover:bg-white/5 transition-all duration-200 font-medium px-3 rounded-xl">
               <Link href="/prepross">Preparation</Link>
             </Button>
             <Button variant="ghost" asChild className="text-sm text-white/80 hover:text-emerald-300 hover:bg-white/5 transition-all duration-200 font-medium px-3 rounded-xl">

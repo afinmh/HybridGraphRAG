@@ -76,12 +76,12 @@ export async function insertJournal(
 ) {
   const supabase = getSupabaseClient();
   const { data, error } = await supabase
-    .from("journals")
+    .from("journals_experiment")
     .insert({
       title,
-      author,
+      authors: author,
       year: year || new Date().getFullYear().toString(),
-      file_url: fileUrl,
+      file_name: fileUrl,
     })
     .select()
     .single();

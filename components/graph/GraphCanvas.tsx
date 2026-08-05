@@ -199,17 +199,38 @@ export const GraphCanvas = ({ data }: { data: GraphData }) => {
                         const tgt = nodeLookup.get(link.target);
                         if (!src || !tgt) return null;
 
+                        const midX = (src.x + tgt.x) / 2;
+                        const midY = (src.y + tgt.y) / 2;
+                        // Calculate angle for text
+                        let angle = Math.atan2(tgt.y - src.y, tgt.x - src.x) * 180 / Math.PI;
+                        if (angle > 90 || angle < -90) {
+                            angle += 180; // Keep text upright
+                        }
+
                         return (
-                            <line
-                                key={i}
-                                x1={src.x}
-                                y1={src.y}
-                                x2={tgt.x}
-                                y2={tgt.y}
-                                stroke="white"
-                                strokeWidth={1.5}
-                                strokeOpacity={0.4}
-                            />
+                            <g key={i}>
+                                <line
+                                    x1={src.x}
+                                    y1={src.y}
+                                    x2={tgt.x}
+                                    y2={tgt.y}
+                                    stroke="white"
+                                    strokeWidth={1.5}
+                                    strokeOpacity={0.4}
+                                />
+                                {link.relation && (
+                                    <text
+                                        x={midX}
+                                        y={midY}
+                                        transform={`rotate(${angle} ${midX} ${midY}) translate(0, -5)`}
+                                        textAnchor="middle"
+                                        className="text-[10px] fill-gray-400 font-mono pointer-events-none"
+                                        style={{ textShadow: "0px 1px 2px rgba(0,0,0,1)" }}
+                                    >
+                                        {link.relation}
+                                    </text>
+                                )}
+                            </g>
                         );
                     })}
                 </g>
@@ -230,7 +251,7 @@ export const GraphCanvas = ({ data }: { data: GraphData }) => {
                                 onMouseEnter={() => setHoveredNode(node)}
                                 onMouseLeave={() => setHoveredNode(null)}
                                 onMouseDown={(e) => handleMouseDown(e, node.id)}
-                                className="transition-opacity duration-300"
+                                className="transition-opacity duration-300 cursor-pointer"
                                 style={{ opacity: hoveredNode && hoveredNode.id !== node.id && !links.some(l => (l.source === node.id && l.target === hoveredNode.id) || (l.target === node.id && l.source === hoveredNode.id)) ? 0.3 : 1 }}
                             >
                                 {/* Glow Effect */}
@@ -253,6 +274,16 @@ export const GraphCanvas = ({ data }: { data: GraphData }) => {
                                         {getIcon(node.type)}
                                     </div>
                                 </foreignObject>
+                                
+                                {/* Label Component Below Node */}
+                                <text
+                                    y={radius + 15}
+                                    textAnchor="middle"
+                                    className="text-xs font-semibold fill-gray-200 pointer-events-none drop-shadow-md"
+                                    style={{ textShadow: "0px 2px 4px rgba(0,0,0,0.8)" }}
+                                >
+                                    {node.name}
+                                </text>
                             </g>
                         );
                     })}

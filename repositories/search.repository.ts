@@ -421,14 +421,54 @@ export async function traverseGraph(
  * then falls back to word2/character2/embeddings.
  */
 export async function getJournalsForEmbeddings(
-  chunkIds: string[]
+  items: any[]
 ): Promise<Map<string, any>> {
-  if (chunkIds.length === 0) return new Map();
+  if (items.length === 0) return new Map();
 
   const supabase = getSupabaseClient();
   const journalMap = new Map<string, any>();
 
-  // Try each chunk table in order — same priority as vectorSearch
+  // If items are objects with journal_id, we can optimize
+  const hasJournalId = typeof items[0] === 'object' && 'journal_id' in items[0];
+
+  if (hasJournalId) {
+    const journalIds = [...new Set(items.map((r: any) => r.journal_id).filter(Boolean))];
+    if (journalIds.length === 0) return journalMap;
+
+    const { data: journals, error } = await supabase
+      .from("journals_experiment")
+      .select("id, title, authors, year, file_name")
+      .in("id", journalIds);
+      
+    if (error) {
+      console.error("Error fetching journals:", error);
+    }
+      
+    if (!journals) return journalMap;
+    
+    const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+    
+    const jById = new Map(journals.map((j: any) => {
+      const fileUrl = `${baseUrl}/storage/v1/object/public/Jurnal/${encodeURIComponent(j.file_name || "")}`;
+      return [
+        j.id, 
+        { ...j, author: j.authors, file_url: fileUrl }
+      ];
+    }));
+
+    for (const r of items) {
+      if (r.journal_id) {
+        const journal = jById.get(r.journal_id);
+        if (journal) {
+          journalMap.set(r.id, journal);
+        }
+      }
+    }
+    return journalMap;
+  }
+
+  // Fallback for string[] (chunk IDs)
+  const chunkIds = items as string[];
   const chunkTables = ["chunk_sentence2", "chunk_word2", "chunk_character2", "embeddings"];
 
   for (const tbl of chunkTables) {
@@ -440,21 +480,26 @@ export async function getJournalsForEmbeddings(
 
       if (error || !data || data.length === 0) continue;
 
-      // Collect unique journal_ids from this batch
       const journalIds = [...new Set(data.map((r: any) => r.journal_id).filter(Boolean))];
       if (journalIds.length === 0) continue;
 
       const { data: journals } = await supabase
-        .from("journals")
-        .select("id, title, author, year, file_url")
+        .from("journals_experiment")
+        .select("id, title, authors, year, file_name")
         .in("id", journalIds);
 
       if (!journals) continue;
 
-      // Build lookup: journal_id → journal metadata
-      const jById = new Map(journals.map((j: any) => [j.id, j]));
+      const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 
-      // Map chunk id → journal
+      const jById = new Map(journals.map((j: any) => {
+        const fileUrl = `${baseUrl}/storage/v1/object/public/Jurnal/${encodeURIComponent(j.file_name || "")}`;
+        return [
+          j.id, 
+          { ...j, author: j.authors, file_url: fileUrl }
+        ];
+      }));
+
       for (const row of data) {
         const journal = jById.get(row.journal_id);
         if (journal) {
@@ -462,7 +507,6 @@ export async function getJournalsForEmbeddings(
         }
       }
 
-      // If we found results in this table, stop (avoid duplicate keys)
       if (journalMap.size > 0) break;
     } catch { /* try next table */ }
   }

@@ -6,10 +6,12 @@ export async function GET(request: Request) {
     try {
         const { searchParams } = new URL(request.url);
         const typesParam = searchParams.get('types');
+        const searchParam = searchParams.get('search');
         const limitParam = searchParams.get('limit') || '150';
         const limit = parseInt(limitParam, 10);
         
         const selectedTypes = typesParam ? typesParam.split(',').map(t => t.trim().toUpperCase()) : [];
+        const searchQuery = searchParam ? searchParam.toLowerCase().trim() : null;
 
         const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
         const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -35,7 +37,7 @@ export async function GET(request: Request) {
         const shuffled = (allRelations || []).sort(() => 0.5 - Math.random());
         let relations: any[] = [];
 
-        if (selectedTypes.length === 0) {
+        if (selectedTypes.length === 0 && !searchQuery) {
             // No filter, just take the limit
             relations = shuffled.slice(0, limit);
         } else {
@@ -51,9 +53,28 @@ export async function GET(request: Request) {
                 
                 const t1 = (rel.type_1 || "").toUpperCase();
                 const t2 = (rel.type_2 || "").toUpperCase();
+                
+                let isStart = false;
 
-                if (selectedTypes.includes(t1)) startNodes.add(e1);
-                if (selectedTypes.includes(t2)) startNodes.add(e2);
+                if (searchQuery) {
+                    if (e1.includes(searchQuery)) isStart = true;
+                    if (e2.includes(searchQuery)) isStart = true;
+                } else if (selectedTypes.length > 0) {
+                    if (selectedTypes.includes(t1)) isStart = true;
+                    if (selectedTypes.includes(t2)) isStart = true;
+                }
+
+                if (isStart) {
+                    if (searchQuery) {
+                        // For search query, specifically add the matched entity as the start node
+                        if (e1.includes(searchQuery)) startNodes.add(e1);
+                        if (e2.includes(searchQuery)) startNodes.add(e2);
+                    } else {
+                        // For type filters, add the entity matching the type
+                        if (selectedTypes.includes(t1)) startNodes.add(e1);
+                        if (selectedTypes.includes(t2)) startNodes.add(e2);
+                    }
+                }
 
                 if (!adj.has(e1)) adj.set(e1, []);
                 adj.get(e1)!.push(rel);

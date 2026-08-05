@@ -166,8 +166,7 @@ export async function POST(request: NextRequest) {
 
         // Enrich with journal metadata
         if (rankedDocs.length > 0) {
-            const ids = rankedDocs.map((r) => r.id);
-            const journalMap = await getJournalsForEmbeddings(ids);
+            const journalMap = await getJournalsForEmbeddings(rankedDocs);
             rankedDocs.forEach((r) => { r.journal = journalMap.get(r.id); });
         }
 

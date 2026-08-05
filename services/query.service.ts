@@ -95,8 +95,7 @@ export async function hybridSearch(
 
   // Enrich vector results with journal metadata
   if (vectorResults.length > 0) {
-    const embeddingIds = vectorResults.map((r) => r.id);
-    const journalMap = await getJournalsForEmbeddings(embeddingIds);
+    const journalMap = await getJournalsForEmbeddings(vectorResults);
     vectorResults.forEach((result) => {
       result.journal = journalMap.get(result.id);
     });

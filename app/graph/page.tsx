@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { GraphCanvas } from "@/components/graph/GraphCanvas";
 import { GraphHeader } from "@/components/graph/GraphHeader";
-import { Loader2, AlertCircle, RefreshCw, Filter, Layers } from "lucide-react";
+import { Loader2, AlertCircle, RefreshCw, Filter, Layers, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
@@ -21,6 +21,8 @@ export default function GraphPage() {
     const [error, setError] = useState("");
     const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
     const [limit, setLimit] = useState(50); // don't show too many items
+    const [searchInput, setSearchInput] = useState("");
+    const [searchQuery, setSearchQuery] = useState("");
 
     const fetchGraph = useCallback(async () => {
         setLoading(true);
@@ -30,6 +32,9 @@ export default function GraphPage() {
             params.set("limit", limit.toString());
             if (selectedFilters.length > 0) {
                 params.set("types", selectedFilters.join(","));
+            }
+            if (searchQuery.trim().length > 0) {
+                params.set("search", searchQuery.trim());
             }
 
             const res = await fetch(`/api/graph-data?${params.toString()}`);
@@ -42,7 +47,7 @@ export default function GraphPage() {
         } finally {
             setLoading(false);
         }
-    }, [selectedFilters, limit]);
+    }, [selectedFilters, limit, searchQuery]);
 
     useEffect(() => {
         fetchGraph();
@@ -72,6 +77,16 @@ export default function GraphPage() {
                             <Filter className="w-4 h-4" />
                             Filters:
                         </div>
+                        <form onSubmit={(e) => { e.preventDefault(); setSearchQuery(searchInput); }} className="flex items-center gap-2 bg-black/50 border border-white/10 rounded-lg px-3 py-1.5 focus-within:border-emerald-500 transition-colors">
+                            <Search className="w-4 h-4 text-gray-400" />
+                            <input 
+                                type="text" 
+                                placeholder="Cari (misal: cinnamon)" 
+                                className="bg-transparent border-none text-xs text-white focus:outline-none w-32 md:w-40"
+                                value={searchInput}
+                                onChange={(e) => setSearchInput(e.target.value)}
+                            />
+                        </form>
                         {FILTER_TYPES.map(ft => {
                             const active = selectedFilters.includes(ft.value);
                             return (
