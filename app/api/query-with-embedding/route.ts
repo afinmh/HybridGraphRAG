@@ -18,8 +18,22 @@ import {
     vectorSearch,
     graphRelationsSearch,
     getJournalsForEmbeddings,
-    type VectorSearchResult,
 } from "@/repositories/search.repository";
+
+// Cache the pipeline to avoid reloading
+let embeddingPipeline: any = null;
+
+async function getEmbeddingPipeline() {
+  if (!embeddingPipeline) {
+    const { pipeline } = await import("@xenova/transformers");
+    embeddingPipeline = await pipeline(
+      "feature-extraction",
+      "Xenova/bge-small-en-v1.5",
+      { quantized: false }
+    );
+  }
+  return embeddingPipeline;
+}
 
 export interface PipelineStep {
     step: number;
@@ -104,12 +118,29 @@ export async function POST(request: NextRequest) {
         const allGraphEntities: string[] = []; // track semua entitas dari semua query
         const perQueryResults: any[] = [];
 
-        for (const q of expandedQueries.slice(0, 3)) {
+        for (let i = 0; i < expandedQueries.slice(0, 3).length; i++) {
+            const q = expandedQueries[i];
             const entry: any = { query: q, chunks: [], graphRels: [], graphEntities: [] };
+
+            let qVecArray = embedding as number[];
+
+            // Generate new embedding for expanded queries (i > 0)
+            if (i > 0) {
+                try {
+                    const extractor = await getEmbeddingPipeline();
+                    const output = await extractor(q, {
+                        pooling: "mean",
+                        normalize: true,
+                    });
+                    qVecArray = Array.from(output.data);
+                } catch (e) {
+                    console.warn(`  [${q}] Embedding generation failed, falling back to original:`, e);
+                }
+            }
 
             // Vector
             try {
-                const qVec = await vectorSearch(embedding as number[], topK);
+                const qVec = await vectorSearch(qVecArray, topK);
                 allRawDocs.push(...qVec);
                 entry.chunks = qVec.map((r) => ({
                     id: r.id,
@@ -162,7 +193,7 @@ export async function POST(request: NextRequest) {
 
         const rankedDocs = uniqueDocs
             .sort((a, b) => (b.similarity ?? 0) - (a.similarity ?? 0))
-            .slice(0, 12);
+            .slice(0, 5);
 
         // Enrich with journal metadata
         if (rankedDocs.length > 0) {
@@ -272,7 +303,8 @@ export async function POST(request: NextRequest) {
             rankedDocs,
             graphForLLM,
             apiKey,
-            language as "id" | "en"
+            language as "id" | "en",
+            uniqueGraphRels
         );
         console.log(`Answer generated: ${answer.substring(0, 100)}...`);
 

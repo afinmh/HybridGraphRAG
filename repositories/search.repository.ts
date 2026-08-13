@@ -59,12 +59,12 @@ export interface GraphRelation {
 
 /**
  * Vector similarity search using embeddings
- * Uses actual Supabase RPCs: match_chunk_sentence2 → match_chunk_word2 → match_chunk_character2 (fallback chain)
+ * Uses actual Supabase RPCs: match_chunk_sentence → match_chunk_word → match_chunk_character (fallback chain)
  * Mirrors 05_hybrid_retrieval_experiment.py:
  *   supabase_client.rpc(v_rpc, {"query_embedding": q_vec, "match_threshold": 0.05, "match_count": 15})
  *
  * Function signature (from DB):
- *   match_chunk_sentence2(query_embedding vector(384), match_threshold float, match_count int)
+ *   match_chunk_sentence(query_embedding vector(384), match_threshold float, match_count int)
  * Returns: id uuid, journal_id uuid, text_content text, similarity float
  */
 export async function vectorSearch(
@@ -82,7 +82,7 @@ export async function vectorSearch(
   };
 
   // Try RPCs in order: sentence → word → character (all have identical signatures)
-  const rpcs = ["match_chunk_sentence2", "match_chunk_word2", "match_chunk_character2"];
+  const rpcs = ["match_chunk_sentence", "match_chunk_word", "match_chunk_character"];
 
   for (const rpcName of rpcs) {
     try {
@@ -101,11 +101,11 @@ export async function vectorSearch(
     }
   }
 
-  // Last resort: direct table query on chunk_sentence2
+  // Last resort: direct table query on chunk_sentence
   return await vectorSearchFallback(topK);
 }
 
-/** Map chunk_sentence2/word2/character2 rows to VectorSearchResult */
+/** Map chunk_sentence/word/character rows to VectorSearchResult */
 function mapChunkRows(rows: any[]): VectorSearchResult[] {
   return rows.map((row: any) => ({
     id: row.id,
@@ -117,13 +117,13 @@ function mapChunkRows(rows: any[]): VectorSearchResult[] {
 }
 
 /**
- * Fallback: direct chunk_sentence2 table query (no cosine ranking)
+ * Fallback: direct chunk_sentence table query (no cosine ranking)
  * Used when all RPCs fail.
  */
 async function vectorSearchFallback(topK: number): Promise<VectorSearchResult[]> {
   const supabase = getSupabaseClient();
 
-  const tables = ["chunk_sentence2", "chunk_word2", "chunk_character2", "embeddings"];
+  const tables = ["chunk_sentence", "chunk_word", "chunk_character", "embeddings"];
 
   for (const tbl of tables) {
     try {
@@ -179,7 +179,7 @@ export async function graphRelationsSearch(
 
       if (data && data.length > 0) {
         for (const row of data) {
-          const rel = `${row.entity_1} ${String(row.relation).replace(/_/g, " ")} ${row.entity_2}.`;
+          const rel = `(${row.entity_1} -> [${String(row.relation).replace(/_/g, " ")}] -> ${row.entity_2})`;
           allRelStrings.push(rel);
         }
         continue; // Found results in graph table, skip fallback
@@ -211,7 +211,7 @@ export async function graphRelationsSearch(
         if (relData) {
           for (const row of relData as any[]) {
             if (row.source && row.target) {
-              allRelStrings.push(`${row.source.name} ${row.relation} ${row.target.name}.`);
+              allRelStrings.push(`(${row.source.name} -> [${String(row.relation).replace(/_/g, " ")}] -> ${row.target.name})`);
             }
           }
         }
@@ -415,9 +415,9 @@ export async function traverseGraph(
 }
 
 /**
- * Get journal metadata for chunk IDs from chunk_sentence2/word2/character2 tables.
+ * Get journal metadata for chunk IDs from chunk_sentence/word/character tables.
  * Returns a Map<chunkId, {title, author, year, file_url}>.
- * Tries chunk_sentence2 first (matching the Python experiment's primary table),
+ * Tries chunk_sentence first (matching the Python experiment's primary table),
  * then falls back to word2/character2/embeddings.
  */
 export async function getJournalsForEmbeddings(
@@ -439,19 +439,19 @@ export async function getJournalsForEmbeddings(
       .from("journals_experiment")
       .select("id, title, authors, year, file_name")
       .in("id", journalIds);
-      
+
     if (error) {
       console.error("Error fetching journals:", error);
     }
-      
+
     if (!journals) return journalMap;
-    
+
     const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-    
+
     const jById = new Map(journals.map((j: any) => {
       const fileUrl = `${baseUrl}/storage/v1/object/public/Jurnal/${encodeURIComponent(j.file_name || "")}`;
       return [
-        j.id, 
+        j.id,
         { ...j, author: j.authors, file_url: fileUrl }
       ];
     }));
@@ -469,7 +469,7 @@ export async function getJournalsForEmbeddings(
 
   // Fallback for string[] (chunk IDs)
   const chunkIds = items as string[];
-  const chunkTables = ["chunk_sentence2", "chunk_word2", "chunk_character2", "embeddings"];
+  const chunkTables = ["chunk_sentence", "chunk_word", "chunk_character", "embeddings"];
 
   for (const tbl of chunkTables) {
     try {
@@ -495,7 +495,7 @@ export async function getJournalsForEmbeddings(
       const jById = new Map(journals.map((j: any) => {
         const fileUrl = `${baseUrl}/storage/v1/object/public/Jurnal/${encodeURIComponent(j.file_name || "")}`;
         return [
-          j.id, 
+          j.id,
           { ...j, author: j.authors, file_url: fileUrl }
         ];
       }));

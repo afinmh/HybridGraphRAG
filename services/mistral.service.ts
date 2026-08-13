@@ -436,7 +436,7 @@ export async function expandQueryMQE(
         messages: [
           {
             role: "user",
-            content: `Write 3 search queries in English to find research papers about: '${query}'. Return ONLY a JSON array of strings, no markdown, no explanation.\nExample: ["query 1", "query 2", "query 3"]`,
+            content: `Analyze the user query: '${query}'. If the query contains local or cultural medical terms (e.g., 'masuk angin'), translate them accurately to their closest English medical equivalents (e.g., 'common cold', 'flu', or 'chills') first. Then, generate 2 alternative search queries in English that use clinical synonyms, alternative medical terminology, or related clinical conditions for the core concepts. Return ONLY a JSON array of strings (e.g., ['Query 1', 'Query 2']).`,
           },
         ],
         temperature: 0.3,
@@ -488,7 +488,7 @@ export async function extractEntitiesForGraphSearch(
         messages: [
           {
             role: "user",
-            content: `Identify the primary herb and the disease/symptom in: '${query}'. Return ONLY a JSON array of strings, no markdown.\nExample: ["ginger", "diabetes"]`,
+            content: `Extract the specific medical entities (ONLY diseases, symptoms, or plant names) from the following text: '${query}'. Translate them to English if they are in another language. EXCLUDE generic terms like 'herbal', 'medicine', 'remedy', 'obat', 'treatment', 'cure', 'natural'. Do NOT guess plant names if they are not explicitly in the text. Return ONLY a JSON array of strings (e.g., ['common cold', 'indigestion']).`,
           },
         ],
         temperature: 0.1,
@@ -529,71 +529,35 @@ export async function generateAnswer(
     relations: Array<{ source: { name: string }; relation: string; target: { name: string; type: string } }>;
   },
   apiKey: string,
-  targetLanguage: 'id' | 'en' = 'id' // Default to ID if not specified
+  targetLanguage: 'id' | 'en' = 'id',
+  rawRelationStrings: string[] = []
 ): Promise<string> {
   try {
-    // Construct context from vector chunks - extract herb mentions for cross-referencing
-    const chunksText = vectorContext
-      .map((chunk, i) => `[Chunk ${i + 1}]: ${chunk.text.substring(0, 600)}`)
-      .join("\n\n");
-
-    // Extract herb names mentioned in vector context for cross-referencing
-    const vectorText = vectorContext.map(c => c.text.toLowerCase()).join(" ");
-
-    // Separate herbs into two categories: confirmed (in vector) and graph-only
-    const graphHerbNames = graphContext.herbs.map((h) => h.name);
-    const confirmedHerbs: string[] = [];
-    const graphOnlyHerbs: string[] = [];
-
-    graphHerbNames.forEach(herbName => {
-      const herbLower = herbName.toLowerCase();
-      // Check if herb is mentioned in vector context
-      if (vectorText.includes(herbLower) ||
-        vectorText.includes(herbLower.split(' ')[0])) {
-        confirmedHerbs.push(herbName);
-      } else {
-        graphOnlyHerbs.push(herbName);
-      }
-    });
-
-    // Filter relations to prioritize those involving confirmed herbs
-    const prioritizedRelations = graphContext.relations
-      .filter(r => confirmedHerbs.some(h =>
-        r.source.name.toLowerCase().includes(h.toLowerCase()) ||
-        h.toLowerCase().includes(r.source.name.toLowerCase())
-      ))
-      .slice(0, 10);
-
-    const additionalRelations = graphContext.relations
-      .filter(r => !prioritizedRelations.includes(r))
-      .slice(0, 5);
-
-    const relationsList = [...prioritizedRelations, ...additionalRelations]
-      .map((r) => `- ${r.source.name} ${r.relation} ${r.target.name} (${r.target.type})`)
+    const context_vector_str = vectorContext
+      .map((doc, i) => `[Doc ${i + 1}]: ${doc.text}`)
+      .join("\n");
+      
+    const context_graph_str = rawRelationStrings
+      .map((rel, i) => `[Graph Fact ${i + 1}]: ${rel}`)
       .join("\n");
 
-    // Get unique journal sources
-    const sources = vectorContext
-      .filter((c) => c.journal)
-      .map((c) => c.journal!)
-      .filter((j, i, arr) => arr.findIndex((x) => x.title === j.title) === i)
-      .slice(0, 3);
+    const final_prompt = `
+    Context 1 (Scientific Relations):
+    ${context_graph_str ? context_graph_str : "No graph relations available."}
 
-    const sourcesText = sources
-      .map((j, i) => `[${i + 1}] ${j.title}. ${j.author}. ${j.year}.`)
-      .join("\n");
+    Context 2 (Research Abstracts):
+    ${context_vector_str ? context_vector_str : "No research abstracts available."}
 
-    // Build optimized prompt
-    const confirmedHerbsList = confirmedHerbs.length > 0
-      ? confirmedHerbs.join(", ")
-      : "None found";
-    const additionalHerbsList = graphOnlyHerbs.length > 0
-      ? graphOnlyHerbs.slice(0, 3).join(", ")
-      : "";
+    Question: ${query}
 
-    const languageInstruction = targetLanguage === 'en'
-      ? "ANSWER IN ENGLISH."
-      : "ANSWER IN INDONESIAN (BAHASA INDONESIA).";
+    Instructions:
+    1. Identify the specific herb mentioned in the context.
+    2. Describe its biological properties (e.g., anti-inflammatory, antioxidant) ONLY if stated.
+    3. Write a cohesive 4-6 sentence paragraph.
+    4. If a detail is not in the contexts, do not include it.
+    5. Ensure your answer is as detailed as a formal medical abstract.
+
+    Answer (English):`;
 
     const response = await fetch(MISTRAL_API_URL, {
       method: "POST",
@@ -606,38 +570,10 @@ export async function generateAnswer(
         messages: [
           {
             role: "user",
-            content: `You are a herbal medicine expert. Answer the question using ONLY the provided context.
-            
-${languageInstruction}
-
-Question: ${query}
-
-=== RESEARCH PAPER EVIDENCE ===
-${chunksText}
-
-=== KNOWLEDGE GRAPH DATA ===
-PRIMARY HERBS (confirmed in research papers): ${confirmedHerbsList}
-${additionalHerbsList ? `ADDITIONAL HERBS (from knowledge graph): ${additionalHerbsList}` : ""}
-
-Therapeutic Relations:
-${relationsList || "No relations found"}
-
-=== ANSWER INSTRUCTIONS ===
-1. ${languageInstruction}
-2. PRIORITIZE herbs that appear in BOTH research papers AND knowledge graph (PRIMARY HERBS)
-3. For PRIMARY HERBS: Explain their therapeutic effects, mechanisms, or clinical findings from the research
-4. KEEP ANSWER CONCISE: Maximum 3-5 sentences in PARAGRAPH format
-5. Include specific compounds, dosages, or study results if mentioned
-6. For ADDITIONAL HERBS: Only briefly mention if directly relevant, otherwise skip
-7. DO NOT mention herbs without supporting evidence from the context
-8. DO NOT make up information not in the context
-9. IMPORTANT: Write in flowing PARAGRAPH format, NOT bullet points or numbered lists
-
-Provide a focused, evidence-based answer in paragraph form:`,
+            content: final_prompt,
           },
         ],
         temperature: 0.2,
-        max_tokens: 400,
       }),
     });
 
