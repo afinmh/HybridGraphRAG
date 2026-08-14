@@ -157,7 +157,7 @@ export async function POST(request: NextRequest) {
             const graphEntities = await extractEntitiesForGraphSearch(q, apiKey);
             entry.graphEntities = graphEntities;
             allGraphEntities.push(...graphEntities); // collect semua entitas
-            const qRels = await graphRelationsSearch(graphEntities, "graph_word", 5);
+            const qRels = await graphRelationsSearch(graphEntities, "graph_sentence", 5);
             allRawGraphRels.push(...qRels);
             entry.graphRels = qRels;
             console.log(`  [${q}] Graph entities: ${graphEntities.join(", ")} → ${qRels.length} rels`);

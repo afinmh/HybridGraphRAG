@@ -81,8 +81,8 @@ export async function vectorSearch(
     match_count: topK,
   };
 
-  // Try RPCs in order: word → sentence → character (all have identical signatures)
-  const rpcs = ["match_chunk_word", "match_chunk_sentence", "match_chunk_character"];
+  // Try RPCs in order: sentence → word → character (all have identical signatures)
+  const rpcs = ["match_chunk_sentence", "match_chunk_word", "match_chunk_character"];
 
   for (const rpcName of rpcs) {
     try {
@@ -123,7 +123,7 @@ function mapChunkRows(rows: any[]): VectorSearchResult[] {
 async function vectorSearchFallback(topK: number): Promise<VectorSearchResult[]> {
   const supabase = getSupabaseClient();
 
-  const tables = ["chunk_word", "chunk_sentence", "chunk_character", "embeddings"];
+  const tables = ["chunk_sentence", "chunk_word", "chunk_character", "embeddings"];
 
   for (const tbl of tables) {
     try {
@@ -159,7 +159,7 @@ async function vectorSearchFallback(topK: number): Promise<VectorSearchResult[]>
  */
 export async function graphRelationsSearch(
   entities: string[],
-  graphTable: "graph_word" | "graph_sentence" | "graph_character" = "graph_word",
+  graphTable: "graph_sentence" | "graph_word" | "graph_character" = "graph_sentence",
   limitPerEntity: number = 5
 ): Promise<string[]> {
   const supabase = getSupabaseClient();
@@ -469,7 +469,7 @@ export async function getJournalsForEmbeddings(
 
   // Fallback for string[] (chunk IDs)
   const chunkIds = items as string[];
-  const chunkTables = ["chunk_word", "chunk_sentence", "chunk_character", "embeddings"];
+  const chunkTables = ["chunk_sentence", "chunk_word", "chunk_character", "embeddings"];
 
   for (const tbl of chunkTables) {
     try {
