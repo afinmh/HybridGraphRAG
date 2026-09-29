@@ -26,7 +26,7 @@ class ProxyHTTPRequestHandler(BaseHTTPRequestHandler):
             
             try:
                 payload = json.loads(client_data.decode('utf-8'))
-                payload['model'] = 'mistral-small-latest'
+                payload['model'] = 'open-mistral-7b'
                 payload['temperature'] = 0.3  # Force randomized generation
                 # ---- INTERCEPT LOGIC ----
                 messages = payload.get('messages', [])

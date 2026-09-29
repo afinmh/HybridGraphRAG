@@ -63,7 +63,7 @@ async function extractMetadataAndPatternsAuto(pagesRaw: string[], apiKey: string
         "Authorization": `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: "mistral-small-latest",
+        model: "open-mistral-7b",
         messages: [{ role: "user", content: prompt }],
         response_format: { type: "json_object" },
         temperature: 0.1

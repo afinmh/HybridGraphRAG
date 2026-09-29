@@ -6,7 +6,7 @@ import { parseJSONResponse } from "@/lib/text-utils";
 import { Entity, Relation, filterEntity, normalizeEntityName, filterRelationsByEntities } from "@/lib/graph-utils";
 
 const MISTRAL_API_URL = "https://api.mistral.ai/v1/chat/completions";
-const MISTRAL_MODEL = "mistral-small-latest";
+const MISTRAL_MODEL = "open-mistral-7b";
 
 export interface Metadata {
   title: string;
@@ -536,7 +536,7 @@ export async function generateAnswer(
     const context_vector_str = vectorContext
       .map((doc, i) => `[Doc ${i + 1}]: ${doc.text}`)
       .join("\n");
-      
+
     const context_graph_str = rawRelationStrings
       .map((rel, i) => `[Graph Fact ${i + 1}]: ${rel}`)
       .join("\n");

@@ -18,6 +18,7 @@ import {
     vectorSearch,
     graphRelationsSearch,
     getJournalsForEmbeddings,
+    VectorSearchResult,
 } from "@/repositories/search.repository";
 
 // Cache the pipeline to avoid reloading

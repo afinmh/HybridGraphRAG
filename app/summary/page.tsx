@@ -11,72 +11,20 @@ import { Button } from "@/components/ui/button";
 const performanceData = [
     {
         id: 1,
-        title: "Question 1",
+        title: "Sentence Chunking",
         scores: {
-            hybrid: { rouge1: 0.3115, rouge2: 0.0833, rougeL: 0.1967, meteor: 0.1966, correctness: 0.7785 },
-            legacy: { rouge1: 0.1435, rouge2: 0.0255, rougeL: 0.0844, meteor: 0.1834, correctness: 0.5451 },
-            vector: { rouge1: 0.2819, rouge2: 0.0272, rougeL: 0.1477, meteor: 0.2401, correctness: 0.7006 },
-            graph: { rouge1: 0.1769, rouge2: 0.0552, rougeL: 0.1361, meteor: 0.1282, correctness: 0.3933 }
-        }
-    },
-    {
-        id: 2,
-        title: "Question 2",
-        scores: {
-            hybrid: { rouge1: 0.4818, rouge2: 0.3556, rougeL: 0.3650, meteor: 0.4632, correctness: 0.6666 },
-            legacy: { rouge1: 0.2159, rouge2: 0.0460, rougeL: 0.1477, meteor: 0.1918, correctness: 0.4266 },
-            vector: { rouge1: 0.1838, rouge2: 0.0546, rougeL: 0.1081, meteor: 0.2243, correctness: 0.5134 },
-            graph: { rouge1: 0.2293, rouge2: 0.0774, rougeL: 0.1274, meteor: 0.1686, correctness: 0.6031 }
-        }
-    },
-    {
-        id: 3,
-        title: "Question 3",
-        scores: {
-            hybrid: { rouge1: 0.3218, rouge2: 0.1395, rougeL: 0.2069, meteor: 0.2454, correctness: 0.6710 },
-            legacy: { rouge1: 0.2705, rouge2: 0.0390, rougeL: 0.1256, meteor: 0.2300, correctness: 0.3554 },
-            vector: { rouge1: 0.3697, rouge2: 0.1340, rougeL: 0.2180, meteor: 0.2785, correctness: 0.6148 },
-            graph: { rouge1: 0.2249, rouge2: 0.0240, rougeL: 0.1183, meteor: 0.1416, correctness: 0.4468 }
-        }
-    },
-    {
-        id: 4,
-        title: "Question 4",
-        scores: {
-            hybrid: { rouge1: 0.2486, rouge2: 0.0656, rougeL: 0.1405, meteor: 0.2082, correctness: 0.5856 },
-            legacy: { rouge1: 0.2167, rouge2: 0.0339, rougeL: 0.1167, meteor: 0.1769, correctness: 0.4502 },
-            vector: { rouge1: 0.1946, rouge2: 0.0109, rougeL: 0.1081, meteor: 0.1408, correctness: 0.4001 },
-            graph: { rouge1: 0.2000, rouge2: 0.0225, rougeL: 0.1111, meteor: 0.1356, correctness: 0.4504 }
-        }
-    },
-    {
-        id: 5,
-        title: "Question 5",
-        scores: {
-            hybrid: { rouge1: 0.2394, rouge2: 0.0571, rougeL: 0.1690, meteor: 0.2284, correctness: 0.5752 },
-            legacy: { rouge1: 0.1628, rouge2: 0.0235, rougeL: 0.0930, meteor: 0.1242, correctness: 0.5151 },
-            vector: { rouge1: 0.2317, rouge2: 0.0370, rougeL: 0.1220, meteor: 0.1835, correctness: 0.4826 },
-            graph: { rouge1: 0.1677, rouge2: 0.0131, rougeL: 0.0903, meteor: 0.1878, correctness: 0.3574 }
-        }
-    },
-    {
-        id: 6,
-        title: "Question 6",
-        scores: {
-            hybrid: { rouge1: 0.2405, rouge2: 0.0769, rougeL: 0.1519, meteor: 0.2924, correctness: 0.6642 },
-            legacy: { rouge1: 0.2045, rouge2: 0.0460, rougeL: 0.1250, meteor: 0.2382, correctness: 0.5744 },
-            vector: { rouge1: 0.2727, rouge2: 0.0556, rougeL: 0.1636, meteor: 0.2109, correctness: 0.4054 },
-            graph: { rouge1: 0.2222, rouge2: 0.0174, rougeL: 0.1026, meteor: 0.1438, correctness: 0.5092 }
+            hybrid: { precision: 0.16, recall: 0.56, fMeasure: 0.25, meteor: 0.30, correctness: 0.56 },
+            vector: { precision: 0.16, recall: 0.41, fMeasure: 0.22, meteor: 0.26, correctness: 0.50 },
+            graph: { precision: 0.07, recall: 0.55, fMeasure: 0.12, meteor: 0.18, correctness: 0.40 }
         }
     }
 ];
 
-const METRICS = ['correctness', 'rouge1', 'rougeL', 'meteor', 'rouge2'];
+const METRICS = ['correctness', 'precision', 'recall', 'fMeasure', 'meteor'];
 const METHODS = [
-    { key: 'hybrid', name: 'Hybrid Graph', color: 'bg-emerald-500', stroke: '#10b981', fill: 'rgba(16, 185, 129, 0.2)' },
-    { key: 'legacy', name: 'Legacy', color: 'bg-gray-500', stroke: '#6b7280', fill: 'rgba(107, 114, 128, 0.2)' },
-    { key: 'vector', name: 'Vector Only', color: 'bg-blue-500', stroke: '#3b82f6', fill: 'rgba(59, 130, 246, 0.2)' },
-    { key: 'graph', name: 'Graph Only', color: 'bg-indigo-500', stroke: '#6366f1', fill: 'rgba(99, 102, 241, 0.2)' },
+    { key: 'hybrid', name: 'Hybrid GraphRAG', color: 'bg-emerald-500', stroke: '#10b981', fill: 'rgba(16, 185, 129, 0.2)' },
+    { key: 'vector', name: 'Vector', color: 'bg-blue-500', stroke: '#3b82f6', fill: 'rgba(59, 130, 246, 0.2)' },
+    { key: 'graph', name: 'Graph', color: 'bg-indigo-500', stroke: '#6366f1', fill: 'rgba(99, 102, 241, 0.2)' },
 ];
 
 // --- ANIMATED NUMBER COMPONENT ---
@@ -213,7 +161,7 @@ export default function SummaryPage() {
     const [selectedQuestion, setSelectedQuestion] = useState(1);
     const [visibleMethods, setVisibleMethods] = useState(['hybrid', 'vector']);
     // Scenario Analysis visible methods (for bar chart and table)
-    const [scenarioMethods, setScenarioMethods] = useState(['hybrid', 'legacy', 'vector', 'graph']);
+    const [scenarioMethods, setScenarioMethods] = useState(['hybrid', 'vector', 'graph']);
 
     const currentQData = performanceData.find(d => d.id === selectedQuestion) || performanceData[0];
 
@@ -336,7 +284,7 @@ export default function SummaryPage() {
                                     <Activity className="w-4 h-4 text-blue-400" /> Metric Breakdown
                                 </h4>
                                 <div className="space-y-4">
-                                    {['rouge1', 'meteor'].map((metric, index) => (
+                                    {['precision', 'recall'].map((metric, index) => (
                                         <div key={metric}>
                                             <div className="flex justify-between text-xs text-gray-400 mb-1 uppercase">
                                                 <span>{metric}</span>
@@ -476,8 +424,8 @@ export default function SummaryPage() {
                                         <tr className="border-b border-white/10">
                                             <th className="text-left py-3 px-4 text-gray-500 font-medium text-xs uppercase">Method</th>
                                             <th className="text-right py-3 px-4 text-gray-500 font-medium text-xs uppercase text-emerald-500">Correctness</th>
-                                            <th className="text-right py-3 px-4 text-gray-500 font-medium text-xs uppercase">ROUGE-1</th>
-                                            <th className="text-right py-3 px-4 text-gray-500 font-medium text-xs uppercase">METEOR</th>
+                                            <th className="text-right py-3 px-4 text-gray-500 font-medium text-xs uppercase">Precision</th>
+                                            <th className="text-right py-3 px-4 text-gray-500 font-medium text-xs uppercase">Recall</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-white/5">
@@ -503,10 +451,10 @@ export default function SummaryPage() {
                                                         {scores.correctness.toFixed(4)}
                                                     </td>
                                                     <td className="py-3 px-4 text-right font-mono text-gray-400">
-                                                        {scores.rouge1.toFixed(4)}
+                                                        {scores.precision.toFixed(4)}
                                                     </td>
                                                     <td className="py-3 px-4 text-right font-mono text-gray-400">
-                                                        {scores.meteor.toFixed(4)}
+                                                        {scores.recall.toFixed(4)}
                                                     </td>
                                                 </motion.tr>
                                             )
@@ -517,7 +465,7 @@ export default function SummaryPage() {
 
                             <div className="mt-4 p-4 bg-white/5 rounded-xl border border-white/5">
                                 <p className="text-xs text-gray-400 italic">
-                                    * ROUGE scores indicate lexical overlap with expert answers. METEOR accounts for semantic similarity. RAGAS Correctness evaluates factual accuracy using LLM-as-a-judge.
+                                    * Precision, Recall, and F-Measure indicate lexical overlap. METEOR accounts for semantic similarity. Correctness evaluates factual accuracy.
                                 </p>
                             </div>
                         </div>
